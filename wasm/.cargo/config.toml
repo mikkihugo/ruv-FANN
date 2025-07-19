@@ -1,0 +1,14 @@
+[target.wasm32-unknown-unknown]
+rustflags = [
+  "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals",
+]
+
+[unstable]
+build-std-features = ["panic_immediate_abort"]
+
+[build]
+target = "wasm32-unknown-unknown"
+
+# Set the correct feature flags for WASM
+[env]
+CARGO_CFG_TARGET_FEATURE = "atomics,bulk-memory,mutable-globals"

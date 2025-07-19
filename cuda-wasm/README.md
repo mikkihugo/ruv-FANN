@@ -37,7 +37,7 @@ This project implements CUDA language compatibility through:
 - **Independent Runtime**: Providing our own execution environment for WebGPU/WebAssembly
 - **No Binary Compatibility**: We do not execute CUDA binaries or PTX code
 
-### CUDA Specifications Referenced
+### CUDA Specifications Referenced 
 This implementation is based on **publicly available CUDA documentation** and specifications:
 - [CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/) (v12.3)
 - [CUDA Runtime API Reference](https://docs.nvidia.com/cuda/cuda-runtime-api/) (v12.3)  

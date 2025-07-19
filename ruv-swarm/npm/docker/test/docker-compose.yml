@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  # Main test runner
+  ruv-swarm-test:
+    build:
+      context: ../../../..
+      dockerfile: ruv-swarm/npm/docker/test/Dockerfile
+      target: tester
+    container_name: ruv-swarm-test
+    environment:
+      - NODE_ENV=test
+      - RUST_LOG=debug
+      - NO_COLOR=1
+      - CI=true
+    volumes:
+      - test-results:/app/test-results
+      - ../../test:/app/ruv-swarm/npm/test:ro
+    networks:
+      - ruv-swarm-net
+    depends_on:
+      - mcp-server
+
+  # MCP Server for integration tests
+  mcp-server:
+    build:
+      context: ../../../..
+      dockerfile: ruv-swarm/npm/docker/test/Dockerfile.mcp
+    container_name: ruv-swarm-mcp
+    environment:
+      - RUST_LOG=info
+      - MCP_PORT=3000
+    ports:
+      - "3000:3000"
+    networks:
+      - ruv-swarm-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Database for persistence tests
+  test-db:
+    image: postgres:16-alpine
+    container_name: ruv-swarm-test-db
+    environment:
+      - POSTGRES_USER=testuser
+      - POSTGRES_PASSWORD=testpass
+      - POSTGRES_DB=ruv_swarm_test
+    ports:
+      - "5432:5432"
+    networks:
+      - ruv-swarm-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching tests
+  test-cache:
+    image: redis:7-alpine
+    container_name: ruv-swarm-test-cache
+    ports:
+      - "6379:6379"
+    networks:
+      - ruv-swarm-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  ruv-swarm-net:
+    driver: bridge
+
+volumes:
+  test-results:
+    driver: local

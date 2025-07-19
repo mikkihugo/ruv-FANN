@@ -1,0 +1,85 @@
+[package]
+name = "geometric-langlands-wasm"
+version = "0.1.0"
+edition = "2021"
+authors = ["ruv-FANN Contributors"]
+description = "WebAssembly bindings for Geometric Langlands Conjecture"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# Main geometric langlands implementation (disabled due to compilation issues)
+# geometric-langlands = { path = "../geometric_langlands_conjecture" }
+
+# WASM bindings
+wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
+wasm-bindgen-futures = "0.4"
+js-sys = "0.3"
+getrandom = { version = "0.2", features = ["js"] }
+
+# Web APIs
+web-sys = { version = "0.3", features = [
+    "console",
+    "Document",
+    "Element",
+    "HtmlElement",
+    "Window",
+    "CanvasRenderingContext2d",
+    "HtmlCanvasElement",
+    "ImageData",
+    "Performance",
+    "Worker",
+    "DedicatedWorkerGlobalScope",
+    "MessageEvent",
+    "EventTarget",
+    "EventListener",
+    "Event",
+    "CustomEvent",
+    "WebGlRenderingContext",
+    "WebGl2RenderingContext",
+    "FileReader",
+    "File",
+] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde-wasm-bindgen = "0.6"
+
+# Mathematical libraries optimized for WASM (minimal for WASM compatibility)
+# nalgebra = { version = "0.33", features = ["serde-serialize"] }
+# ndarray = { version = "0.16", features = ["serde"] }
+num-complex = { version = "0.4", features = ["serde"] }
+num-traits = "0.2"
+
+# Error handling
+thiserror = "2.0"
+anyhow = "1.0"
+
+# Console logging for debugging
+console_error_panic_hook = { version = "0.1", optional = true }
+wee_alloc = { version = "0.4", optional = true }
+
+# Feature detection
+cfg-if = "1.0"
+
+[workspace]
+# Empty workspace to exclude from parent workspace
+
+[features]
+default = ["console_error_panic_hook", "wee_alloc"]
+wasm = ["getrandom/js"]
+
+[profile.release]
+# Optimize for size
+opt-level = "s"
+debug = false
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+# Enable wee_alloc feature for smaller binary size
+wee_alloc = []

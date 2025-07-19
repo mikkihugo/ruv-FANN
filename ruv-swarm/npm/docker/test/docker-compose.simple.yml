@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # Simple test runner
+  test:
+    build:
+      context: ../..
+      dockerfile: docker/test/Dockerfile.simple
+    container_name: ruv-swarm-simple-test
+    environment:
+      - NODE_ENV=test
+      - NO_COLOR=1
+    volumes:
+      - ./test-results:/app/test-results
+    networks:
+      - test-network
+
+  # Test with specific Node version
+  test-node-20:
+    build:
+      context: ../..
+      dockerfile: docker/test/Dockerfile.node20
+    container_name: ruv-swarm-test-node20
+    environment:
+      - NODE_ENV=test
+      - NO_COLOR=1
+    volumes:
+      - ./test-results:/app/test-results
+    networks:
+      - test-network
+
+  # Test with Alpine Linux (smaller image)
+  test-alpine:
+    image: ruv-swarm-test:simple
+    container_name: ruv-swarm-test-alpine
+    environment:
+      - NODE_ENV=test
+      - NO_COLOR=1
+    command: sh -c "npm test && npm run test:docker:wasm"
+    volumes:
+      - ./test-results:/app/test-results
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge
+
+volumes:
+  test-results:
+    driver: local

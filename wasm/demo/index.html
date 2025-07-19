@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌟 Geometric Langlands Conjecture - Interactive Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ffd700, #ffba08);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .demo-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .demo-panel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .demo-panel h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #ffd700;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .control-group select,
+        .control-group input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .control-group select option {
+            background: #333;
+            color: #fff;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .results-panel h3 {
+            color: #ffd700;
+            margin-bottom: 15px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #ffd700;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #ffd700, #ffba08);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .mathematical-display {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            border-left: 4px solid #ffd700;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .visualization-canvas {
+            width: 100%;
+            height: 300px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .step-number {
+            background: #ffd700;
+            color: #333;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            margin-top: 40px;
+        }
+
+        .footer a {
+            color: #ffd700;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-loading { background: #ffd700; animation: pulse 1s infinite; }
+        .status-success { background: #4caf50; }
+        .status-error { background: #f44336; }
+        .status-ready { background: #2196f3; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🌟 Geometric Langlands Conjecture</h1>
+            <p>
+                Experience the mathematical beauty of the Langlands correspondence through 
+                interactive WebAssembly-powered computations. Explore the deep connections 
+                between number theory, algebraic geometry, and representation theory.
+            </p>
+        </header>
+
+        <div class="demo-grid">
+            <div class="demo-panel">
+                <h3>🧮 Correspondence Computer</h3>
+                <div class="control-group">
+                    <label for="groupType">Reductive Group Type:</label>
+                    <select id="groupType">
+                        <option value="GL">GL(n) - General Linear Group</option>
+                        <option value="SL">SL(n) - Special Linear Group</option>
+                        <option value="SO">SO(n) - Special Orthogonal Group</option>
+                        <option value="Sp">Sp(2n) - Symplectic Group</option>
+                        <option value="PGL">PGL(n) - Projective General Linear</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="dimension">Dimension:</label>
+                    <select id="dimension">
+                        <option value="2">2 (Elliptic curves)</option>
+                        <option value="3">3 (Modular forms)</option>
+                        <option value="4">4 (Higher dimensional)</option>
+                        <option value="5">5 (Research frontier)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="characteristic">Characteristic (prime p):</label>
+                    <select id="characteristic">
+                        <option value="0">0 (Characteristic zero)</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="5">5</option>
+                        <option value="7">7</option>
+                        <option value="11">11</option>
+                    </select>
+                </div>
+
+                <button class="btn" id="computeBtn" onclick="computeCorrespondence()">
+                    🚀 Compute Correspondence
+                </button>
+            </div>
+
+            <div class="demo-panel">
+                <h3>⚙️ Engine Configuration</h3>
+                <div class="control-group">
+                    <label for="maxWorkers">Max Web Workers:</label>
+                    <input type="range" id="maxWorkers" min="1" max="8" value="4" 
+                           oninput="updateWorkerCount(this.value)">
+                    <span id="workerCount">4</span>
+                </div>
+
+                <div class="control-group">
+                    <label for="memoryLimit">Memory Limit (MB):</label>
+                    <input type="range" id="memoryLimit" min="50" max="500" value="100" 
+                           oninput="updateMemoryLimit(this.value)">
+                    <span id="memoryValue">100</span> MB
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        <input type="checkbox" id="enableGpu" checked> 
+                        Enable GPU Acceleration (WebGL)
+                    </label>
+                </div>
+
+                <div class="control-group">
+                    <label for="optimizationLevel">Optimization Level:</label>
+                    <select id="optimizationLevel">
+                        <option value="0">0 - Debug</option>
+                        <option value="1">1 - Basic</option>
+                        <option value="2" selected>2 - Optimized</option>
+                        <option value="3">3 - Maximum</option>
+                    </select>
+                </div>
+
+                <button class="btn" id="initBtn" onclick="initializeEngine()">
+                    ⚡ Initialize Engine
+                </button>
+            </div>
+        </div>
+
+        <div class="results-panel" id="resultsPanel" style="display: none;">
+            <h3>📊 Computation Results</h3>
+            <div id="statusIndicator">
+                <span class="status-indicator status-ready"></span>
+                <span id="statusText">Ready to compute</span>
+            </div>
+            
+            <div id="progressContainer" style="display: none;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar"></div>
+                </div>
+                <div id="progressText">Initializing...</div>
+            </div>
+
+            <div id="computationSteps"></div>
+            
+            <div id="mathematicalResults" style="display: none;">
+                <div class="mathematical-display" id="correspondenceData"></div>
+                <div class="visualization-canvas" id="visualizationCanvas">
+                    <p>🎨 Visualization will appear here</p>
+                </div>
+            </div>
+
+            <div class="metrics-grid" id="metricsGrid" style="display: none;">
+                <div class="metric-card">
+                    <div class="metric-value" id="computationTime">-</div>
+                    <div class="metric-label">Computation Time (ms)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="confidence">-</div>
+                    <div class="metric-label">Confidence %</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="memoryUsage">-</div>
+                    <div class="metric-label">Memory Usage (MB)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="wasmSize">-</div>
+                    <div class="metric-label">WASM Bundle (KB)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-panel">
+            <h3>🔬 Mathematical Playground</h3>
+            <p>Explore number-theoretic functions powered by WebAssembly:</p>
+            
+            <div class="control-group">
+                <label for="primeInput">Find primes up to:</label>
+                <input type="number" id="primeInput" value="100" min="2" max="10000">
+                <button class="btn" onclick="findPrimes()">🔍 Find Primes</button>
+            </div>
+            
+            <div class="control-group">
+                <label for="totientInput">Euler's totient φ(n) for:</label>
+                <input type="number" id="totientInput" value="12" min="1" max="1000000">
+                <button class="btn" onclick="computeTotient()">📐 Compute φ(n)</button>
+            </div>
+            
+            <div id="playgroundResults" class="mathematical-display" style="display: none;"></div>
+        </div>
+
+        <footer class="footer">
+            <p>
+                🌟 Built with <strong>Rust + WebAssembly</strong> for maximum performance<br>
+                <a href="https://github.com/ruvnet/ruv-FANN" target="_blank">
+                    View source on GitHub
+                </a> | 
+                <a href="https://github.com/ruvnet/ruv-FANN/issues/161" target="_blank">
+                    Track development progress
+                </a>
+            </p>
+            <p style="margin-top: 10px;">
+                <span id="wasmInfo">Loading WASM module...</span>
+            </p>
+        </footer>
+    </div>
+
+    <script type="module">
+        import init, { 
+            LanglandsEngine, 
+            WasmConfig, 
+            MathUtils, 
+            WebGLUtils,
+            get_version,
+            get_library_info
+        } from '../pkg/geometric_langlands_wasm.js';
+
+        let engine = null;
+        let wasmModule = null;
+
+        // Initialize WASM module
+        async function initWasm() {
+            try {
+                wasmModule = await init();
+                const info = get_library_info();
+                const version = get_version();
+                
+                document.getElementById('wasmInfo').innerHTML = 
+                    `📦 WASM Module v${version} loaded successfully! Size: ${getWasmSize()} KB`;
+                
+                console.log('🌟 Geometric Langlands WASM loaded:', info);
+                
+                // Show WebGL capabilities
+                const webglInfo = WebGLUtils.get_webgl_info();
+                console.log('🎮 WebGL capabilities:', webglInfo);
+                
+                updateStatus('ready', 'WASM module loaded - Ready to initialize engine');
+                document.getElementById('initBtn').disabled = false;
+                
+            } catch (error) {
+                console.error('❌ Failed to load WASM:', error);
+                updateStatus('error', 'Failed to load WASM module');
+            }
+        }
+
+        // Initialize the Langlands engine
+        window.initializeEngine = async function() {
+            if (!wasmModule) {
+                alert('WASM module not loaded yet!');
+                return;
+            }
+
+            const initBtn = document.getElementById('initBtn');
+            initBtn.disabled = true;
+            initBtn.textContent = '⏳ Initializing...';
+
+            try {
+                const config = new WasmConfig();
+                config.set_max_workers(parseInt(document.getElementById('maxWorkers').value));
+                config.set_memory_limit(parseFloat(document.getElementById('memoryLimit').value));
+                config.set_enable_gpu(document.getElementById('enableGpu').checked);
+
+                engine = new LanglandsEngine(config);
+                
+                updateStatus('loading', 'Initializing Langlands engine...');
+                showProgress(true);
+                
+                await engine.initialize();
+                
+                updateStatus('success', 'Engine initialized successfully!');
+                showProgress(false);
+                
+                document.getElementById('computeBtn').disabled = false;
+                initBtn.textContent = '✅ Engine Ready';
+                
+                // Show results panel
+                document.getElementById('resultsPanel').style.display = 'block';
+                
+                // Update metrics
+                updateMetrics();
+                
+            } catch (error) {
+                console.error('❌ Engine initialization failed:', error);
+                updateStatus('error', `Initialization failed: ${error.message}`);
+                showProgress(false);
+                initBtn.disabled = false;
+                initBtn.textContent = '⚡ Initialize Engine';
+            }
+        };
+
+        // Compute Langlands correspondence
+        window.computeCorrespondence = async function() {
+            if (!engine || !engine.is_ready()) {
+                alert('Please initialize the engine first!');
+                return;
+            }
+
+            const computeBtn = document.getElementById('computeBtn');
+            computeBtn.disabled = true;
+            computeBtn.textContent = '🔮 Computing...';
+
+            try {
+                const groupType = document.getElementById('groupType').value;
+                const dimension = parseInt(document.getElementById('dimension').value);
+                
+                updateStatus('loading', `Computing ${groupType}(${dimension}) correspondence...`);
+                showProgress(true);
+                
+                const result = await engine.compute_correspondence(groupType, dimension);
+                
+                displayResults(result);
+                updateStatus('success', 'Correspondence computed successfully!');
+                showProgress(false);
+                
+                updateMetrics();
+                
+            } catch (error) {
+                console.error('❌ Computation failed:', error);
+                updateStatus('error', `Computation failed: ${error.message}`);
+                showProgress(false);
+            } finally {
+                computeBtn.disabled = false;
+                computeBtn.textContent = '🚀 Compute Correspondence';
+            }
+        };
+
+        // Mathematical playground functions
+        window.findPrimes = function() {
+            const n = parseInt(document.getElementById('primeInput').value);
+            const primes = MathUtils.primes_up_to(n);
+            
+            document.getElementById('playgroundResults').style.display = 'block';
+            document.getElementById('playgroundResults').innerHTML = 
+                `<strong>Primes up to ${n}:</strong><br>${primes.join(', ')}<br><br>
+                 <em>Found ${primes.length} primes using WASM-optimized sieve</em>`;
+        };
+
+        window.computeTotient = function() {
+            const n = parseInt(document.getElementById('totientInput').value);
+            const phi = MathUtils.euler_totient(n);
+            
+            document.getElementById('playgroundResults').style.display = 'block';
+            document.getElementById('playgroundResults').innerHTML = 
+                `<strong>φ(${n}) = ${phi}</strong><br><br>
+                 <em>Euler's totient function computed via WASM</em>`;
+        };
+
+        // UI helper functions
+        function updateStatus(type, message) {
+            const indicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            
+            indicator.querySelector('.status-indicator').className = `status-indicator status-${type}`;
+            statusText.textContent = message;
+        }
+
+        function showProgress(show) {
+            document.getElementById('progressContainer').style.display = show ? 'block' : 'none';
+            if (!show) {
+                document.getElementById('progressBar').style.width = '0%';
+            }
+        }
+
+        function displayResults(result) {
+            const resultsDiv = document.getElementById('mathematicalResults');
+            const dataDiv = document.getElementById('correspondenceData');
+            const stepsDiv = document.getElementById('computationSteps');
+            
+            // Show computation steps
+            stepsDiv.innerHTML = result.steps.map((step, index) => 
+                `<div class="step-indicator">
+                    <div class="step-number">${index + 1}</div>
+                    <div>
+                        <strong>${step.step}</strong><br>
+                        <small>Progress: ${(step.progress * 100).toFixed(1)}%</small>
+                    </div>
+                 </div>`
+            ).join('');
+            
+            // Show mathematical data
+            const data = result.mathematical_data;
+            dataDiv.innerHTML = `
+                <strong>Correspondence for ${result.group_type}(${result.dimension}):</strong><br><br>
+                <strong>Galois Representation:</strong> ${data.galois_representation}<br>
+                <strong>Automorphic Form:</strong> ${data.automorphic_form}<br>
+                <strong>L-function:</strong> ${data.l_function}<br>
+                <strong>Conductor:</strong> N = ${data.conductor}<br>
+                <strong>Hodge Numbers:</strong> (${data.hodge_numbers.join(', ')})<br><br>
+                <em>Confidence: ${(result.confidence * 100).toFixed(1)}%</em>
+            `;
+            
+            resultsDiv.style.display = 'block';
+            
+            // Update metrics with computation data
+            document.getElementById('computationTime').textContent = 
+                result.computation_time.toFixed(0);
+            document.getElementById('confidence').textContent = 
+                (result.confidence * 100).toFixed(1);
+        }
+
+        function updateMetrics() {
+            if (engine) {
+                const metrics = engine.get_performance_metrics();
+                const memoryUsage = engine.estimate_memory_usage();
+                
+                document.getElementById('memoryUsage').textContent = memoryUsage.toFixed(1);
+                document.getElementById('metricsGrid').style.display = 'grid';
+            }
+            
+            document.getElementById('wasmSize').textContent = getWasmSize();
+        }
+
+        function getWasmSize() {
+            // Estimate WASM bundle size (in a real implementation, this would be measured)
+            return '~250';
+        }
+
+        // UI control handlers
+        window.updateWorkerCount = function(value) {
+            document.getElementById('workerCount').textContent = value;
+        };
+
+        window.updateMemoryLimit = function(value) {
+            document.getElementById('memoryValue').textContent = value;
+        };
+
+        // Initialize everything
+        initWasm();
+    </script>
+</body>
+</html>

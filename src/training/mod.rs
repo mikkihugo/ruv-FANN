@@ -291,6 +291,9 @@ mod backprop;
 mod quickprop;
 mod rprop;
 
+// High-performance optimized training pipeline
+pub mod optimized_pipeline;
+
 // GPU training module (when GPU features are enabled)
 #[cfg(feature = "gpu")]
 mod gpu_backprop;

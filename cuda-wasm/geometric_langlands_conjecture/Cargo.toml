@@ -1,0 +1,118 @@
+[package]
+name = "geometric-langlands-conjecture"
+version = "0.1.0"
+edition = "2021"
+authors = ["AI/ML Expert Agent"]
+description = "Neural network implementation for the geometric Langlands conjecture using ruv-FANN"
+license = "Apache-2.0"
+repository = "https://github.com/ruvnet/ruv-FANN"
+keywords = ["mathematics", "neural-networks", "langlands", "algebraic-geometry"]
+categories = ["mathematics", "science"]
+
+[dependencies]
+# Neural network framework
+ruv-fann = { path = "../../ruv-fann", version = "0.4" }
+
+# Linear algebra and arrays
+ndarray = { version = "0.15", features = ["blas"] }
+nalgebra = { version = "0.32", features = ["serde-serialize"] }
+
+# Complex numbers
+num-complex = "0.4"
+
+# Random number generation
+rand = "0.8"
+rand_chacha = "0.3"
+
+# Graph algorithms
+petgraph = "0.6"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Async runtime
+tokio = { version = "1.0", features = ["full"] }
+
+# Parallel processing
+rayon = "1.7"
+
+# Date/time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Logging
+log = "0.4"
+env_logger = "0.10"
+
+# File I/O
+csv = "1.2"
+
+# Configuration
+config = "0.13"
+
+# Progress bars
+indicatif = "0.17"
+
+# Mathematical functions
+statrs = "0.16"
+
+# Memory mapping for large datasets
+memmap2 = "0.7"
+
+# CUDA support (optional)
+cudarc = { version = "0.9", optional = true }
+
+# WASM support
+wasm-bindgen = { version = "0.2", optional = true }
+js-sys = { version = "0.3", optional = true }
+web-sys = { version = "0.3", optional = true }
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+proptest = "1.2"
+approx = "0.5"
+
+[features]
+default = ["cuda"]
+cuda = ["cudarc"]
+wasm = ["wasm-bindgen", "js-sys", "web-sys"]
+
+[[bin]]
+name = "langlands-train"
+path = "src/bin/train.rs"
+
+[[bin]]
+name = "langlands-predict"
+path = "src/bin/predict.rs"
+
+[[example]]
+name = "gl1_correspondence"
+path = "examples/gl1_correspondence.rs"
+
+[[example]]
+name = "gl2_correspondence"
+path = "examples/gl2_correspondence.rs"
+
+[[bench]]
+name = "neural_network_benchmarks"
+harness = false
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+
+[profile.bench]
+opt-level = 3
+debug = true
+
+[workspace]
+members = [
+    ".",
+    "cuda-kernels",
+    "wasm-bindings"
+]

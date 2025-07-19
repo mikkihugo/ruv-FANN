@@ -1,0 +1,55 @@
+{
+  "name": "@ruv-fann/geometric-langlands-wasm",
+  "version": "0.1.0",
+  "description": "WebAssembly implementation of Geometric Langlands Conjecture computations",
+  "main": "pkg/geometric_langlands_conjecture.js",
+  "types": "pkg/geometric_langlands_conjecture.d.ts",
+  "files": [
+    "pkg/**/*",
+    "!pkg/.gitignore",
+    "!pkg/example.html"
+  ],
+  "scripts": {
+    "build": "./build.sh release",
+    "build:dev": "./build.sh dev",
+    "build:size": "./build.sh size",
+    "build:profile": "./build.sh profiling",
+    "test": "wasm-pack test --headless --chrome",
+    "test:node": "wasm-pack test --node",
+    "serve": "python3 -m http.server 8000 --directory pkg",
+    "bench": "cargo bench --target wasm32-unknown-unknown",
+    "clean": "rm -rf pkg target",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ruvnet/ruv-FANN.git"
+  },
+  "keywords": [
+    "wasm",
+    "webassembly",
+    "mathematics",
+    "langlands",
+    "gpu",
+    "webgpu",
+    "scientific-computing"
+  ],
+  "author": "CUDA-WASM Team",
+  "license": "MIT OR Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/ruvnet/ruv-FANN/issues"
+  },
+  "homepage": "https://github.com/ruvnet/ruv-FANN/tree/main/cuda-wasm/examples/geometric_langlands_conjecture",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "browser": {
+    "fs": false,
+    "path": false,
+    "crypto": false
+  }
+}
