@@ -11,30 +11,14 @@ repository = "https://github.com/ruvnet/ruv-FANN"
 crate-type = ["cdylib"]
 
 [dependencies]
-# Parent crate
-geometric-langlands = { path = "..", features = ["wasm"] }
-
 # WASM bindings
 wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
-wasm-bindgen-futures = "0.4"
-js-sys = "0.3"
 web-sys = { version = "0.3", features = [
   "console",
-  "Performance",
+  "Performance", 
   "Window",
-  "Document",
-  "Element",
-  "HtmlCanvasElement",
-  "CanvasRenderingContext2d",
-  "ImageData",
-  "WebGlRenderingContext",
-  "WebGl2RenderingContext",
-  "Worker",
-  "MessageEvent",
-  "MessagePort",
-  "Blob",
-  "Url",
 ] }
+js-sys = "0.3"
 
 # Error handling for WASM
 console_error_panic_hook = "0.1"
@@ -45,35 +29,8 @@ serde = { version = "1.0", features = ["derive"] }
 serde-wasm-bindgen = "0.6"
 serde_json = "1.0"
 
-# Mathematical libraries optimized for WASM
-nalgebra = { version = "0.33", features = ["serde-serialize"], default-features = false }
-ndarray = { version = "0.16", features = ["serde"], default-features = false }
-num-complex = { version = "0.4", default-features = false }
-num-traits = { version = "0.2", default-features = false }
-
-# Optional random number generation for WASM
+# Random number generation for WASM
 getrandom = { version = "0.2", features = ["js"] }
-
-[dependencies.web-sys]
-version = "0.3"
-features = [
-  "console",
-  "Performance",
-  "Window",
-  "Document",
-  "Element",
-  "HtmlElement",
-  "HtmlCanvasElement",
-  "CanvasRenderingContext2d",
-  "ImageData",
-  "WebGlRenderingContext",
-  "Worker",
-  "MessageEvent",
-  "Blob",
-  "Url",
-  "FileReader",
-  "File",
-]
 
 [profile.release]
 # Optimize for size in WASM builds
@@ -81,9 +38,6 @@ opt-level = "s"
 lto = true
 codegen-units = 1
 panic = "abort"
-
-# Enable debug symbols for better stack traces
-debug = true
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = ["-Oz", "--enable-mutable-globals"]

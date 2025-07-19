@@ -4,14 +4,19 @@
 //! in web browsers and JavaScript environments.
 
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::JsFuture;
-use web_sys::{console, Performance};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 // Core mathematical structures
 use crate::core::*;
 use crate::prelude::*;
+
+#[cfg(feature = "wasm")]
+use wasm_bindgen_futures::JsFuture;
+#[cfg(feature = "wasm")]
+use web_sys::{console, Performance};
+#[cfg(feature = "wasm")]
+use serde_wasm_bindgen;
 
 /// Initialize WASM module
 #[wasm_bindgen(start)]
@@ -73,17 +78,17 @@ impl WasmReductiveGroup {
     
     #[wasm_bindgen]
     pub fn dimension(&self) -> usize {
-        self.inner.dimension()
+        self.inner.dimension
     }
     
     #[wasm_bindgen]
     pub fn rank(&self) -> usize {
-        self.inner.rank()
+        self.inner.rank
     }
     
     #[wasm_bindgen]
     pub fn group_type(&self) -> String {
-        format!("{:?}", self.inner.group_type())
+        self.inner.root_system.clone()
     }
 }
 
@@ -216,7 +221,7 @@ impl WasmLanglandsEngine {
         group_type: &str,
         dimension: usize,
         characteristic: u32,
-    ) -> Result<JsValue, JsValue> {
+    ) -> std::result::Result<JsValue, JsValue> {
         self.mark_performance("computation_start");
         
         console_log!("🔮 Computing {} correspondence in dimension {}", group_type, dimension);

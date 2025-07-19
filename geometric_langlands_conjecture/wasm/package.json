@@ -1,0 +1,70 @@
+{
+  "name": "@ruv-fann/geometric-langlands-wasm",
+  "version": "0.1.0",
+  "description": "WebAssembly bindings for the Geometric Langlands Conjecture computational framework",
+  "main": "pkg/geometric_langlands_wasm.js",
+  "module": "pkg/geometric_langlands_wasm.js",
+  "types": "pkg/geometric_langlands_wasm.d.ts",
+  "files": [
+    "pkg/*.js",
+    "pkg/*.ts",
+    "pkg/*.wasm",
+    "pkg/package.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "wasm-pack build --target web --out-dir pkg",
+    "build:nodejs": "wasm-pack build --target nodejs --out-dir pkg-nodejs",
+    "build:bundler": "wasm-pack build --target bundler --out-dir pkg-bundler",
+    "build:all": "npm run build && npm run build:nodejs && npm run build:bundler",
+    "test": "wasm-pack test --headless --firefox",
+    "test:node": "wasm-pack test --node",
+    "serve": "python3 -m http.server 8000",
+    "dev": "npm run build && npm run serve"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ruvnet/ruv-FANN.git",
+    "directory": "geometric_langlands_conjecture/wasm"
+  },
+  "keywords": [
+    "mathematics",
+    "langlands",
+    "automorphic-forms",
+    "galois-theory",
+    "wasm",
+    "webassembly",
+    "rust",
+    "number-theory",
+    "representation-theory",
+    "algebraic-geometry"
+  ],
+  "author": "ruv-FANN Contributors <contact@ruvnet.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ruvnet/ruv-FANN/issues"
+  },
+  "homepage": "https://github.com/ruvnet/ruv-FANN/tree/main/geometric_langlands_conjecture",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "browserslist": [
+    "last 2 versions",
+    "> 1%",
+    "not dead"
+  ],
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {},
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/ruvnet"
+  }
+}

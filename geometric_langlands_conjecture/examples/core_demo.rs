@@ -5,7 +5,7 @@
 
 use geometric_langlands::prelude::*;
 
-fn main() -> Result<()> {
+fn main() -> geometric_langlands::Result<()> {
     println!("🧮 Geometric Langlands Core Type System Demo");
     println!("============================================");
     

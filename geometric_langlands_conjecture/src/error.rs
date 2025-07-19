@@ -66,12 +66,13 @@ impl From<anyhow::Error> for Error {
     }
 }
 
-#[cfg(feature = "cuda")]
-impl From<cust::error::CudaError> for Error {
-    fn from(err: cust::error::CudaError) -> Self {
-        Error::CudaError(err.to_string())
-    }
-}
+// CUDA support is not yet implemented - placeholder for future implementation
+// #[cfg(feature = "cuda")]
+// impl From<cust::error::CudaError> for Error {
+//     fn from(err: cust::error::CudaError) -> Self {
+//         Error::CudaError(err.to_string())
+//     }
+// }
 
 #[cfg(test)]
 mod tests {

@@ -9,7 +9,9 @@
 pub trait Representation {}
 
 /// Placeholder for PrincipalSeries
+#[derive(Debug, Clone, PartialEq)]
 pub struct PrincipalSeries;
 
 /// Placeholder for DiscreteSeries
+#[derive(Debug, Clone, PartialEq)]
 pub struct DiscreteSeries;

@@ -2,12 +2,26 @@
 name = "geometric-langlands"
 version = "0.1.0"
 edition = "2021"
-authors = ["ruv-FANN Contributors"]
-description = "Implementation of the Geometric Langlands Conjecture using Rust, WASM, and CUDA"
+authors = ["ruv-FANN Contributors <contact@ruvnet.com>"]
+description = "A comprehensive computational framework for the Geometric Langlands Conjecture with neural-symbolic integration, WASM deployment, and CUDA acceleration"
 license = "MIT"
 repository = "https://github.com/ruvnet/ruv-FANN"
-keywords = ["mathematics", "langlands", "automorphic", "galois", "wasm", "cuda"]
-categories = ["mathematics", "science", "wasm", "algorithms"]
+homepage = "https://github.com/ruvnet/ruv-FANN/tree/main/geometric_langlands_conjecture"
+documentation = "https://docs.rs/geometric-langlands"
+readme = "README.md"
+keywords = ["mathematics", "langlands", "automorphic", "galois", "algebra"]
+categories = ["mathematics", "science", "algorithms", "wasm"]
+rust-version = "1.70"
+include = [
+    "src/**/*",
+    "benches/**/*", 
+    "examples/**/*",
+    "tests/**/*",
+    "Cargo.toml",
+    "README.md",
+    "LICENSE*",
+    "build.rs"
+]
 
 [dependencies]
 # Core mathematical libraries
@@ -40,10 +54,13 @@ tokio = { version = "1.42", features = ["full"] }
 # cudarc = { version = "0.12", features = ["f16", "nccl", "curand", "cublas"], optional = true }
 
 # WASM support
-wasm-bindgen = { version = "0.2", optional = true }
-web-sys = { version = "0.3", optional = true }
+wasm-bindgen = { version = "0.2", features = ["serde-serialize"], optional = true }
+wasm-bindgen-futures = { version = "0.4", optional = true }
+web-sys = { version = "0.3", features = ["console", "Performance", "Window"], optional = true }
 js-sys = { version = "0.3", optional = true }
 getrandom = { version = "0.2", features = ["js"], optional = true }
+serde-wasm-bindgen = { version = "0.6", optional = true }
+console_error_panic_hook = { version = "0.1", optional = true }
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
@@ -64,6 +81,7 @@ tracing-subscriber = "0.3"
 proptest = "1.6"
 criterion = { version = "0.6", features = ["html_reports"] }
 test-case = "3.3"
+rand = "0.8"
 
 # Documentation
 aquamarine = "0.6"
@@ -82,7 +100,8 @@ default = ["parallel"]
 parallel = ["dep:rayon", "ndarray/rayon"]
 cuda = []  # Feature flag for conditional compilation
 bench = []  # Feature flag for benchmarking code
-wasm = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "dep:getrandom"]
+wasm = ["dep:wasm-bindgen", "dep:wasm-bindgen-futures", "dep:web-sys", "dep:js-sys", "dep:getrandom", "dep:serde-wasm-bindgen", "dep:console_error_panic_hook"]
+console_error_panic_hook = ["dep:console_error_panic_hook"]
 full = ["parallel", "wasm"]
 
 [profile.release]
@@ -96,7 +115,7 @@ inherits = "release"
 debug = true
 
 [workspace]
-members = [".", "examples/*"]
+members = [".", "examples/*", "wasm"]
 
 [[bench]]
 name = "langlands_benchmarks"
@@ -104,4 +123,10 @@ harness = false
 
 [package.metadata.docs.rs]
 all-features = true
-rustdoc-args = ["--cfg", "docsrs"]
+rustdoc-args = ["--cfg", "docsrs", "--generate-link-to-definition"]
+targets = ["x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
+
+[package.metadata.release]
+pre-release-replacements = [
+    {file="README.md", search="geometric-langlands = \"[a-z0-9\\.-]+\"", replace="geometric-langlands = \"{{version}}\""}
+]
