@@ -112,6 +112,19 @@ export default [
         caughtErrorsIgnorePattern: '^_',
       }],
       'no-undef': 'error',
+
+      // ES module enforcement - prevent CommonJS require() in ES module context
+      'no-restricted-syntax': [
+        'error',
+        {
+          'selector': 'CallExpression[callee.name="require"]',
+          'message': 'require() is not allowed in ES modules. Use import statements instead.'
+        },
+        {
+          'selector': 'MemberExpression[object.name="module"][property.name="exports"]',
+          'message': 'module.exports is not allowed in ES modules. Use export statements instead.'
+        }
+      ],
       'no-redeclare': 'error',
       'no-unreachable': 'error',
       'no-constant-condition': 'error',

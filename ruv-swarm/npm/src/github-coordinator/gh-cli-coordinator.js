@@ -3,10 +3,10 @@
  * Uses gh CLI for all GitHub operations - simpler and more reliable
  */
 
-const { execSync } = require('child_process');
-const fs = require('fs').promises;
-const path = require('path');
-const Database = require('better-sqlite3');
+import { execSync } from 'child_process';
+import { promises as fs } from 'fs';
+import path from 'path';
+import Database from 'better-sqlite3';
 
 class GHCoordinator {
   constructor(options = {}) {
@@ -257,4 +257,4 @@ This is an automated update from the swarm coordinator.`;
 //   console.log('Coordination status:', status);
 // }
 
-module.exports = GHCoordinator;
+export default GHCoordinator;

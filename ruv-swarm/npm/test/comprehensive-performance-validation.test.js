@@ -5,11 +5,11 @@
  * Tests all performance targets and validates DAA integration
  */
 
-const { RuvSwarm } = require('../src/index-enhanced');
-const { performanceCLI } = require('../src/performance');
-const fs = require('fs').promises;
-const path = require('path');
-const { spawn } = require('child_process');
+import { RuvSwarm } from '../src/index-enhanced.js';
+import { performanceCLI } from '../src/performance.js';
+import { promises as fs } from 'fs';
+import path from 'path';
+import { spawn } from 'child_process';
 
 class PerformanceValidator {
   constructor() {

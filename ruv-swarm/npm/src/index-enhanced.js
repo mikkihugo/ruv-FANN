@@ -37,7 +37,7 @@ class RuvSwarm {
    * Cleanup method for proper resource disposal
    */
   destroy() {
-    console.error('🧹 Cleaning up RuvSwarm instance...');
+    console.log('🧹 Cleaning up RuvSwarm instance...');
 
     // Terminate all active swarms
     for (const swarm of this.activeSwarms.values()) {
@@ -89,19 +89,34 @@ class RuvSwarm {
     // Check if already initialized through container
     if (instance.isInitialized) {
       if (debug) {
-        console.error('[DEBUG] RuvSwarm already initialized through container');
+        console.log('[DEBUG] RuvSwarm already initialized through container');
       }
       return instance;
     }
 
-    console.error('🧠 Initializing ruv-swarm with WASM capabilities...');
+    // Minimal loading for fast startup
+    if (loadingStrategy === 'minimal') {
+      if (debug) {
+        console.log('[DEBUG] Using minimal loading strategy for fast startup');
+      }
+      console.log('⚡ Fast-initializing ruv-swarm (minimal mode)...');
+      instance.isInitialized = true;
+      instance.features.simd_support = false; // Skip SIMD detection for speed
+      return instance;
+    }
+
+    console.log('🧠 Initializing ruv-swarm with WASM capabilities...');
 
     try {
-      // Initialize WASM modules
-      await instance.wasmLoader.initialize(loadingStrategy);
+      // Initialize WASM modules (skip for minimal loading)
+      if (loadingStrategy !== 'minimal') {
+        await instance.wasmLoader.initialize(loadingStrategy);
+      }
 
-      // Detect and enable features
-      await instance.detectFeatures(useSIMD);
+      // Detect and enable features (skip for minimal loading)
+      if (loadingStrategy !== 'minimal') {
+        await instance.detectFeatures(useSIMD);
+      }
 
       // Initialize pooled persistence if enabled
       if (enablePersistence) {
@@ -118,40 +133,58 @@ class RuvSwarm {
           
           instance.persistence = new SwarmPersistencePooled(undefined, poolOptions);
           await instance.persistence.initialize();
-          console.error('💾 High-availability pooled persistence layer initialized');
-          console.error(`📊 Pool configuration: ${poolOptions.maxReaders} readers, ${poolOptions.maxWorkers} workers`);
+          console.log('[INFO] Pooled persistence layer initialized successfully');
+          if (debug) {
+            console.log(`[DEBUG] Pool configuration: ${poolOptions.maxReaders} readers, ${poolOptions.maxWorkers} workers`);
+          }
         } catch (error) {
-          console.error('⚠️ Pooled persistence not available:', error.message);
+          console.warn('⚠️ Pooled persistence not available:', error.message);
           instance.persistence = null;
+        }
+      } else {
+        if (debug) {
+          console.log('[DEBUG] Persistence disabled for fast startup');
         }
       }
 
       // Pre-load neural networks if enabled
-      if (enableNeuralNetworks) {
+      if (enableNeuralNetworks && loadingStrategy !== 'minimal') {
         try {
           await instance.wasmLoader.loadModule('neural');
           instance.features.neural_networks = true;
-          console.error('🧠 Neural network capabilities loaded');
+          if (debug) {
+            console.log('[DEBUG] Neural network capabilities loaded');
+          }
         } catch (error) {
-          console.error('⚠️ Neural network module not available:', error.message);
+          if (debug) {
+            console.warn('⚠️ Neural network module not available:', error.message);
+          }
           instance.features.neural_networks = false;
         }
       }
 
       // Pre-load forecasting if enabled
-      if (enableForecasting && enableNeuralNetworks) {
+      if (enableForecasting && enableNeuralNetworks && loadingStrategy !== 'minimal') {
         try {
           await instance.wasmLoader.loadModule('forecasting');
           instance.features.forecasting = true;
-          console.error('📈 Forecasting capabilities loaded');
+          if (debug) {
+            console.log('[DEBUG] Forecasting capabilities loaded');
+          }
         } catch (error) {
-          console.error('⚠️ Forecasting module not available:', error.message);
+          if (debug) {
+            console.warn('⚠️ Forecasting module not available:', error.message);
+          }
           instance.features.forecasting = false;
         }
       }
 
-      console.error('✅ ruv-swarm initialized successfully');
-      console.error('📊 Features:', instance.features);
+      if (loadingStrategy !== 'minimal') {
+        console.log('✅ ruv-swarm initialized successfully');
+        if (debug) {
+          console.log('📊 Features:', instance.features);
+        }
+      }
 
       // Mark as initialized
       instance.isInitialized = true;
@@ -182,9 +215,9 @@ class RuvSwarm {
         this.features.cognitive_diversity = true; // Default enabled
       }
 
-      console.error('🔍 Feature detection complete');
+      console.log('🔍 Feature detection complete');
     } catch (error) {
-      console.error('⚠️ Feature detection failed:', error.message);
+      console.warn('⚠️ Feature detection failed:', error.message);
     }
   }
 
@@ -220,7 +253,7 @@ class RuvSwarm {
         wasmSwarm.name = name;
         wasmSwarm.config = swarmConfig;
       } catch (error) {
-        console.error('Failed to create WASM swarm:', error.message);
+        console.warn('Failed to create WASM swarm:', error.message);
         // Fallback to JavaScript implementation
         wasmSwarm = {
           id: id || `swarm-${Date.now()}`,
@@ -257,7 +290,7 @@ class RuvSwarm {
         });
       } catch (error) {
         if (!error.message.includes('UNIQUE constraint failed')) {
-          console.error('Failed to persist swarm:', error.message);
+          console.warn('Failed to persist swarm:', error.message);
         }
       }
     }
@@ -265,7 +298,7 @@ class RuvSwarm {
     this.activeSwarms.set(swarm.id, swarm);
     this.metrics.totalSwarms++;
 
-    console.error(`🐝 Created swarm: ${name} (${swarm.id})`);
+    console.log(`🐝 Created swarm: ${name} (${swarm.id})`);
     return swarm;
   }
 
@@ -312,6 +345,29 @@ class RuvSwarm {
       wasm_modules: this.wasmLoader.getModuleStatus(),
       timestamp: new Date().toISOString(),
     };
+  }
+
+  /**
+   * Legacy compatibility method for spawnAgent
+   * Creates a default swarm if none exists and spawns an agent
+   * @param {string} name - Agent name
+   * @param {string} type - Agent type
+   * @param {Object} options - Additional options
+   * @returns {Promise<Agent>} The spawned agent
+   */
+  async spawnAgent(name, type = 'researcher', options = {}) {
+    // Create a default swarm if none exists
+    if (this.activeSwarms.size === 0) {
+      await this.createSwarm({
+        name: 'default-swarm',
+        maxAgents: options.maxAgents || 10,
+      });
+    }
+
+    // Get the first available swarm (or the default one we just created)
+    const swarm = this.activeSwarms.values().next().value;
+    
+    return await swarm.spawnAgent(name, type, options);
   }
 
   // Feature detection helpers
@@ -430,13 +486,28 @@ class Swarm {
         });
       } catch (error) {
         if (!error.message.includes('UNIQUE constraint failed')) {
-          console.error('Failed to persist agent:', error.message);
+          console.warn('Failed to persist agent:', error.message);
         }
       }
     }
 
-    console.error(`🤖 Spawned agent: ${result.name} (${type})`);
+    console.log(`🤖 Spawned agent: ${result.name} (${type})`);
     return agent;
+  }
+
+  /**
+   * Legacy compatibility method for spawnAgent
+   * @param {string} name - Agent name
+   * @param {string} type - Agent type
+   * @param {Object} options - Additional options
+   * @returns {Promise<Agent>} The spawned agent
+   */
+  async spawnAgent(name, type = 'researcher', options = {}) {
+    return await this.spawn({
+      name,
+      type,
+      ...options
+    });
   }
 
   async orchestrate(taskConfig) {
@@ -506,7 +577,7 @@ class Swarm {
       });
     }
 
-    console.error(`📋 Orchestrated task: ${description} (${taskId}) - Assigned to ${result.assigned_agents.length} agents`);
+    console.log(`📋 Orchestrated task: ${description} (${taskId}) - Assigned to ${result.assigned_agents.length} agents`);
     return task;
   }
 
@@ -567,7 +638,7 @@ class Swarm {
     }
 
     // Fallback monitoring
-    console.error(`📊 Monitoring swarm ${this.id} for ${duration}ms...`);
+    console.log(`📊 Monitoring swarm ${this.id} for ${duration}ms...`);
     return {
       duration,
       interval,
@@ -576,7 +647,7 @@ class Swarm {
   }
 
   async terminate() {
-    console.error(`🛑 Terminating swarm: ${this.id}`);
+    console.log(`🛑 Terminating swarm: ${this.id}`);
     this.ruvSwarm.activeSwarms.delete(this.id);
   }
 }
@@ -595,7 +666,7 @@ class Agent {
   }
 
   async execute(_task) {
-    console.error(`🏃 Agent ${this.name} executing task`);
+    console.log(`🏃 Agent ${this.name} executing task`);
     this.status = 'busy';
 
     // Simulate task execution
@@ -620,7 +691,7 @@ class Agent {
 
   async updateStatus(status) {
     this.status = status;
-    console.error(`📊 Agent ${this.name} status: ${status}`);
+    console.log(`📊 Agent ${this.name} status: ${status}`);
   }
 }
 
@@ -648,7 +719,7 @@ class Task {
     this.startTime = Date.now();
     this.progress = 0.1;
 
-    console.error(`🏃 Executing task: ${this.description} with ${this.assignedAgents.length} agents`);
+    console.log(`🏃 Executing task: ${this.description} with ${this.assignedAgents.length} agents`);
 
     try {
       // Execute task with all assigned agents
@@ -692,7 +763,7 @@ class Task {
         }
       }
 
-      console.error(`✅ Task completed: ${this.description} (${this.endTime - this.startTime}ms`);
+      console.log(`✅ Task completed: ${this.description} (${this.endTime - this.startTime}ms)`);
 
     } catch (error) {
       this.status = 'failed';

@@ -208,9 +208,10 @@ class RuvSwarm {
     };
   }
 
-  static getVersion() {
+  static async getVersion() {
     if (!wasmInstance) {
-      return require('../package.json').version;
+      const packageJson = await import('../package.json', { assert: { type: 'json' } });
+      return packageJson.default.version;
     }
     return wasmInstance.exports.get_version();
   }
@@ -234,6 +235,26 @@ class RuvSwarm {
   // Instance method that delegates to static method for API convenience
   detectSIMDSupport() {
     return RuvSwarm.detectSIMDSupport();
+  }
+
+  /**
+   * Legacy compatibility method for spawnAgent
+   * Creates a default swarm if none exists and spawns an agent
+   * @param {string} name - Agent name  
+   * @param {string} type - Agent type
+   * @param {Object} options - Additional options
+   * @returns {Promise<Agent>} The spawned agent
+   */
+  async spawnAgent(name, type = 'researcher', options = {}) {
+    // Create a default swarm if this instance doesn't have one
+    if (!this._defaultSwarm) {
+      this._defaultSwarm = await this.createSwarm({
+        name: 'default-swarm',
+        maxAgents: this._options.maxAgents || 10,
+      });
+    }
+
+    return await this._defaultSwarm.spawnAgent(name, type, options);
   }
 }
 
@@ -264,6 +285,21 @@ class SwarmWrapper {
     return await this._retryOperation(async() => {
       const agent = await this._swarm.spawn(config);
       return new AgentWrapper(agent, this._options);
+    });
+  }
+
+  /**
+   * Legacy compatibility method for spawnAgent
+   * @param {string} name - Agent name
+   * @param {string} type - Agent type  
+   * @param {Object} options - Additional options
+   * @returns {Promise<Agent>} The spawned agent
+   */
+  async spawnAgent(name, type = 'researcher', options = {}) {
+    return await this.spawn({
+      name,
+      type,
+      ...options
     });
   }
 

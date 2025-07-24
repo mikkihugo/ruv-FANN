@@ -1,0 +1,49 @@
+{
+  "testSuite": "wasm-validation",
+  "version": "1.0.6",
+  "timestamp": "2025-07-24T14:57:58.785Z",
+  "nodeVersion": "v22.12.0",
+  "tests": [
+    {
+      "name": "Module Import",
+      "status": "passed",
+      "message": "Successfully imported RuvSwarm module"
+    },
+    {
+      "name": "WASM Module Detection",
+      "status": "warning",
+      "message": "WASM module not found in expected global scope"
+    },
+    {
+      "name": "Swarm Instance Creation",
+      "status": "passed",
+      "message": "Successfully created RuvSwarm instance"
+    },
+    {
+      "name": "WASM File Existence",
+      "status": "passed",
+      "message": "WASM file found: 170223 bytes"
+    },
+    {
+      "name": "WASM Memory Configuration",
+      "status": "passed",
+      "message": "Expected memory: 256 pages (16MB)"
+    },
+    {
+      "name": "WASM Functionality",
+      "status": "failed",
+      "error": "swarm.spawnAgent is not a function"
+    },
+    {
+      "name": "No Fallback Mode",
+      "status": "passed",
+      "message": "WASM loaded without fallback"
+    }
+  ],
+  "summary": {
+    "total": 7,
+    "passed": 5,
+    "failed": 1,
+    "passRate": "71.43"
+  }
+}

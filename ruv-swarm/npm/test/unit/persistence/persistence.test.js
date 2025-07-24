@@ -526,7 +526,8 @@ describe('SwarmPersistence Tests', () => {
 });
 
 // Run tests when this file is executed directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   console.log('Running SwarmPersistence Unit Tests...');
-  require('../../../node_modules/.bin/jest');
+  // Use dynamic import for jest execution
+  await import('../../../node_modules/.bin/jest');
 }

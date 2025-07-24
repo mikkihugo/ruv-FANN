@@ -6,16 +6,47 @@
  */
 
 import { spawn } from 'child_process';
-import { setupClaudeIntegration, invokeClaudeWithSwarm as _invokeClaudeWithSwarm } from '../src/claude-integration/index.js';
-import { RuvSwarm } from '../src/index-enhanced.js';
-import { EnhancedMCPTools } from '../src/mcp-tools-enhanced.js';
-import { daaMcpTools } from '../src/mcp-daa-tools.js';
-import mcpToolsEnhanced from '../src/mcp-tools-enhanced.js';
-import { Logger } from '../src/logger.js';
-import { CommandSanitizer, SecurityError } from '../src/security.js';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+
+// Lazy imports for heavy modules to improve startup time
+let RuvSwarm, EnhancedMCPTools, daaMcpTools, mcpToolsEnhanced, Logger, CommandSanitizer, SecurityError, setupClaudeIntegration, _invokeClaudeWithSwarm;
+
+async function importHeavyModules() {
+    if (!RuvSwarm) {
+        const ruvSwarmModule = await import('../src/index-enhanced.js');
+        RuvSwarm = ruvSwarmModule.RuvSwarm;
+    }
+    
+    if (!EnhancedMCPTools) {
+        const mcpModule = await import('../src/mcp-tools-enhanced.js');
+        EnhancedMCPTools = mcpModule.EnhancedMCPTools;
+        mcpToolsEnhanced = mcpModule.default;
+    }
+    
+    if (!daaMcpTools) {
+        const daaModule = await import('../src/mcp-daa-tools.js');
+        daaMcpTools = daaModule.daaMcpTools;
+    }
+    
+    if (!Logger) {
+        const loggerModule = await import('../src/logger.js');
+        Logger = loggerModule.Logger;
+    }
+    
+    if (!CommandSanitizer) {
+        const securityModule = await import('../src/security.js');
+        CommandSanitizer = securityModule.CommandSanitizer;
+        SecurityError = securityModule.SecurityError;
+    }
+    
+    if (!setupClaudeIntegration) {
+        const claudeModule = await import('../src/claude-integration/index.js');
+        setupClaudeIntegration = claudeModule.setupClaudeIntegration;
+        _invokeClaudeWithSwarm = claudeModule.invokeClaudeWithSwarm;
+    }
+}
 
 // Get version from package.json
 const __filename = fileURLToPath(import.meta.url);
@@ -171,6 +202,9 @@ let globalLogger = null;
 // Initialize logger based on environment
 async function initializeLogger() {
     if (!globalLogger) {
+        // Import Logger only when needed
+        await importHeavyModules();
+        
         globalLogger = new Logger({
             name: 'ruv-swarm-mcp-no-timeout',
             level: process.env.LOG_LEVEL || (process.argv.includes('--debug') ? 'DEBUG' : 'INFO'),
@@ -211,16 +245,25 @@ async function initializeLogger() {
     return globalLogger;
 }
 
-async function initializeSystem() {
+async function initializeSystem(options = {}) {
+    const { skipPersistence = false, debug = process.argv.includes('--debug') } = options;
+    
+    // Import heavy modules only when needed
+    await importHeavyModules();
+    
     if (!globalRuvSwarm) {
+        if (debug) {
+            console.log('[DEBUG] Initializing RuvSwarm with options:', { skipPersistence });
+        }
+        
         // RuvSwarm.initialize already prints initialization messages
         globalRuvSwarm = await RuvSwarm.initialize({
-            loadingStrategy: 'progressive',
-            enablePersistence: true,
-            enableNeuralNetworks: true,
-            enableForecasting: true,
+            loadingStrategy: skipPersistence ? 'minimal' : 'progressive',
+            enablePersistence: !skipPersistence,
+            enableNeuralNetworks: !skipPersistence,
+            enableForecasting: !skipPersistence,
             useSIMD: RuvSwarm.detectSIMDSupport(),
-            debug: process.argv.includes('--debug')
+            debug: debug
         });
     }
     
@@ -229,20 +272,22 @@ async function initializeSystem() {
         globalMCPTools = new EnhancedMCPTools(globalRuvSwarm);
         await globalMCPTools.initialize(globalRuvSwarm);
         
-        // Initialize DAA MCP tools with the same instance
-        daaMcpTools.mcpTools = globalMCPTools;
-        await daaMcpTools.ensureInitialized();
-        
-        // Add DAA tool methods to the MCP tools object
-        const daaToolNames = [
-            'daa_init', 'daa_agent_create', 'daa_agent_adapt', 'daa_workflow_create',
-            'daa_workflow_execute', 'daa_knowledge_share', 'daa_learning_status',
-            'daa_cognitive_pattern', 'daa_meta_learning', 'daa_performance_metrics'
-        ];
-        
-        for (const toolName of daaToolNames) {
-            if (typeof daaMcpTools[toolName] === 'function') {
-                globalMCPTools[toolName] = daaMcpTools[toolName].bind(daaMcpTools);
+        if (!skipPersistence) {
+            // Initialize DAA MCP tools with the same instance (only if persistence is enabled)
+            daaMcpTools.mcpTools = globalMCPTools;
+            await daaMcpTools.ensureInitialized();
+            
+            // Add DAA tool methods to the MCP tools object
+            const daaToolNames = [
+                'daa_init', 'daa_agent_create', 'daa_agent_adapt', 'daa_workflow_create',
+                'daa_workflow_execute', 'daa_knowledge_share', 'daa_learning_status',
+                'daa_cognitive_pattern', 'daa_meta_learning', 'daa_performance_metrics'
+            ];
+            
+            for (const toolName of daaToolNames) {
+                if (typeof daaMcpTools[toolName] === 'function') {
+                    globalMCPTools[toolName] = daaMcpTools[toolName].bind(daaMcpTools);
+                }
             }
         }
     }
@@ -252,7 +297,8 @@ async function initializeSystem() {
 
 async function handleInit(args) {
     try {
-        const { mcpTools } = await initializeSystem();
+        const skipPersistence = args.includes('--no-persistence') || args.includes('--fast');
+        const { mcpTools } = await initializeSystem({ skipPersistence });
         
         // Filter out flags to get positional arguments
         const positionalArgs = args.filter(arg => !arg.startsWith('--'));
@@ -329,7 +375,8 @@ async function handleInit(args) {
 
 async function handleSpawn(args) {
     try {
-        const { mcpTools } = await initializeSystem();
+        const skipPersistence = args.includes('--no-persistence') || args.includes('--fast');
+        const { mcpTools } = await initializeSystem({ skipPersistence });
         
         const rawType = args[0] || 'researcher';
         const rawName = args[1] || null;
@@ -365,7 +412,8 @@ async function handleSpawn(args) {
 
 async function handleOrchestrate(args) {
     try {
-        const { mcpTools } = await initializeSystem();
+        const skipPersistence = args.includes('--no-persistence') || args.includes('--fast');
+        const { mcpTools } = await initializeSystem({ skipPersistence });
         
         const rawTask = args.join(' ');
         if (!rawTask) {
@@ -408,6 +456,9 @@ async function handleClaudeInvoke(args) {
         return;
     }
     
+    // Import modules only when needed
+    await importHeavyModules();
+    
     // Security: validate prompt for dangerous patterns
     try {
         CommandSanitizer.validateArgument(prompt.trim());
@@ -439,7 +490,8 @@ async function handleClaudeInvoke(args) {
 }
 
 async function handleStatus(args) {
-    const { mcpTools } = await initializeSystem();
+    const skipPersistence = args.includes('--no-persistence') || args.includes('--fast');
+    const { mcpTools } = await initializeSystem({ skipPersistence });
     
     const verbose = args.includes('--verbose') || args.includes('-v');
     const swarmId = args.find(arg => !arg.startsWith('-'));
@@ -469,7 +521,8 @@ async function handleStatus(args) {
 }
 
 async function handleMonitor(args) {
-    const { mcpTools } = await initializeSystem();
+    const skipPersistence = args.includes('--no-persistence') || args.includes('--fast');
+    const { mcpTools } = await initializeSystem({ skipPersistence });
     
     const duration = parseInt(args.find(arg => arg.match(/^\d+$/)), 10) || 10000;
     
@@ -529,6 +582,7 @@ async function handleMcp(args) {
 async function startMcpServer(args) {
     const protocol = args.find(arg => arg.startsWith('--protocol='))?.split('=')[1] || 'stdio';
     const enableStability = args.includes('--stability') || process.env.MCP_STABILITY === 'true';
+    const skipPersistence = args.includes('--no-persistence') || args.includes('--fast') || args.includes('--skip-init');
     
     if (enableStability) {
         isStabilityMode = true;
@@ -560,8 +614,12 @@ async function startMcpServer(args) {
             
             // Initialize WASM if needed
             const initOpId = logger.startOperation('initialize-system');
-            const { ruvSwarm, mcpTools } = await initializeSystem();
-            logger.endOperation(initOpId, true, { modulesLoaded: true });
+            const { ruvSwarm, mcpTools } = await initializeSystem({ skipPersistence });
+            logger.endOperation(initOpId, true, { 
+                modulesLoaded: true, 
+                persistenceEnabled: !skipPersistence,
+                fastMode: skipPersistence
+            });
             
             // Start stdio MCP server loop
             process.stdin.setEncoding('utf8');
@@ -834,8 +892,9 @@ async function getMcpStatus() {
     console.log('🔍 MCP Server Status (NO TIMEOUT VERSION):');
     console.log('   Protocol: stdio (for Claude Code integration)');
     console.log('   Status: Ready to start');
-    console.log('   Usage: npx ruv-swarm mcp start [--stability]');
+    console.log('   Usage: npx ruv-swarm mcp start [--stability] [--no-persistence] [--fast]');
     console.log('   Stability: Auto-restart on crashes (use --stability flag)');
+    console.log('   Performance: Fast startup with --no-persistence or --fast flags');
     console.log('   🔥 TIMEOUT MECHANISMS: COMPLETELY DISABLED');
     console.log('   🔥 RUNTIME: INFINITE');
 }
@@ -878,15 +937,23 @@ function showMcpHelp() {
 Usage: ruv-swarm mcp <subcommand> [options]
 
 Subcommands:
-  start [--protocol=stdio] [--stability]  Start MCP server
-  status                                  Show MCP server status
-  stop                                   Stop MCP server
-  tools                                  List available MCP tools
-  help                                   Show this help message
+  start [--protocol=stdio] [--stability] [--no-persistence] [--fast] [--skip-init]  Start MCP server
+  status                                                                           Show MCP server status
+  stop                                                                            Stop MCP server
+  tools                                                                           List available MCP tools
+  help                                                                            Show this help message
 
 Options:
   --stability                            Enable auto-restart on crashes
   --protocol=stdio                       Use stdio protocol (default)
+  --no-persistence                       Disable persistence layer for faster startup
+  --fast                                 Enable fast mode (same as --no-persistence)
+  --skip-init                           Skip full initialization for benchmarking
+
+⚡ PERFORMANCE OPTIMIZATION:
+  • Use --no-persistence or --fast for <5 second startup on simple commands
+  • Use --skip-init for benchmarking and development
+  • Full initialization only when needed
 
 🔥 TIMEOUT MECHANISMS: COMPLETELY REMOVED
   • No connection intervals
@@ -903,16 +970,18 @@ Environment Variables:
 
 Examples:
   ruv-swarm mcp start                    # Start stdio MCP server (no timeouts)
-  ruv-swarm mcp start --stability        # Start with crash protection (no timeouts)
+  ruv-swarm mcp start --stability        # Start with crash protection (no timeouts)  
+  ruv-swarm mcp start --fast             # Start with fast mode (<5s startup)
   ruv-swarm mcp tools                    # List available tools
   
 For Claude Code integration:
-  claude mcp add ruv-swarm npx ruv-swarm mcp start --stability
+  claude mcp add ruv-swarm npx ruv-swarm mcp start --stability --fast
   
 🔥 SPECIAL FEATURES:
   • Bulletproof infinite runtime
   • No disconnection mechanisms
   • Maximum stability without timeouts
+  • Fast startup mode for simple commands
   • Secure operation maintained
 `);
 }
@@ -1510,6 +1579,9 @@ Commands:
       --merge                       Merge with existing CLAUDE.md content
       --no-backup                   Disable automatic backup creation
       --no-interactive              Skip interactive prompts (fail on conflicts)
+    Performance options (all commands):
+      --no-persistence              Disable persistence layer for faster startup
+      --fast                        Enable fast mode (same as --no-persistence)
   spawn <type> [name]             Spawn an agent (researcher, coder, analyst, etc.)
   orchestrate <task>              Orchestrate a task across agents
   status [--verbose]              Show swarm status
@@ -1517,14 +1589,16 @@ Commands:
   mcp <subcommand>                MCP server management
     Options for mcp start:
       --stability                   Enable auto-restart on crashes
+      --fast                        Fast startup mode (<5s for simple commands)
+      --skip-init                   Skip full initialization for benchmarking
   hook <type> [options]           Claude Code hooks integration
   claude-invoke <prompt>          Invoke Claude with swarm integration
   neural <subcommand>             Neural network training and analysis
   benchmark <subcommand>          Performance benchmarking tools
   performance <subcommand>        Performance analysis and optimization
   diagnose <subcommand>           Run diagnostics and analyze logs
-  version                         Show version information
-  help                            Show this help message
+  version                         Show version information (fast, no persistence)
+  help                            Show this help message (fast, no persistence)
 
 Examples:
   ruv-swarm init mesh 5 --claude                    # Create CLAUDE.md (fails if exists)
@@ -1568,18 +1642,58 @@ For detailed documentation, check .claude/commands/ after running init --claude
 `);
 }
 
+// Command classification for lazy loading
+function requiresPersistence(command, args = []) {
+    // Simple commands that don't need persistence
+    const simpleCommands = ['version', 'help'];
+    const simpleFlagsOnly = ['--version', '-v', '--help', '-h'];
+    
+    // Check if it's a simple command
+    if (simpleCommands.includes(command)) {
+        return false;
+    }
+    
+    // Check if only simple flags are provided
+    if (args.length === 0 && simpleFlagsOnly.some(flag => process.argv.includes(flag))) {
+        return false;
+    }
+    
+    // Check for performance flags
+    if (args.includes('--no-persistence') || args.includes('--fast')) {
+        return false;
+    }
+    
+    // MCP status doesn't need persistence
+    if (command === 'mcp' && args[0] === 'status') {
+        return false;
+    }
+    
+    // All other commands need persistence
+    return true;
+}
+
 async function main() {
+    const startTime = Date.now();
     const args = process.argv.slice(2);
     
-    // Handle --version flag
+    // Handle --version flag early (no persistence needed)
     if (args.includes('--version') || args.includes('-v')) {
         const version = await getVersion();
         console.log(version);
         return;
     }
     
+    // Handle --help flag early (no persistence needed)
+    if (args.includes('--help') || args.includes('-h')) {
+        await showHelp();
+        return;
+    }
+    
     const command = args[0] || 'help';
 
+    // Add startup timing if debug mode
+    const debug = args.includes('--debug');
+    
     try {
         switch (command) {
             case 'init':
@@ -1649,6 +1763,13 @@ async function main() {
                 await showHelp();
                 break;
         }
+        
+        // Log startup time if debug mode
+        if (debug) {
+            const elapsed = Date.now() - startTime;
+            console.log(`\n⚡ Startup time: ${elapsed}ms`);
+        }
+        
     } catch (error) {
         console.error('❌ Error:', error.message);
         if (process.argv.includes('--debug')) {
