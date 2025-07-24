@@ -91,7 +91,7 @@ class WasmModuleLoader {
     try {
       const m = await p;
       this.modules.set(name, m);
-      console.log(`✅  Loaded WASM module: ${name} (${this.#fmt(info.size)})`);
+      console.error(`✅  Loaded WASM module: ${name} (${this.#fmt(info.size)})`);
       return m;
     } finally {
       this.loadingPromises.delete(name);
@@ -121,7 +121,7 @@ class WasmModuleLoader {
     // Check cache first
     const cached = this.wasmCache.get(cacheKey);
     if (cached && (Date.now() - cached.timestamp < this.cacheTimeout)) {
-      console.log(`✨ Using cached WASM module: ${name}`);
+      console.error(`✨ Using cached WASM module: ${name}`);
       return cached.module;
     }
 
@@ -162,7 +162,7 @@ class WasmModuleLoader {
         try {
           const result = await this.#tryLoadFromPath(pathCandidate);
           if (result && !result.isPlaceholder) {
-            console.log(`✅ Successfully loaded WASM from: ${pathCandidate.description}`);
+            console.error(`✅ Successfully loaded WASM from: ${pathCandidate.description}`);
             return result;
           }
         } catch (pathError) {
@@ -206,9 +206,9 @@ class WasmModuleLoader {
     };
 
     if (name === 'neural') {
-      base.neural = { log_training_progress: (e, l) => console.log(`Epoch ${e} → loss ${l}`) };
+      base.neural = { log_training_progress: (e, l) => console.error(`Epoch ${e} → loss ${l}`) };
     } else if (name === 'forecasting') {
-      base.forecasting = { log_forecast: (m, h) => console.log(`Forecast ${m}, horizon ${h}`) };
+      base.forecasting = { log_forecast: (m, h) => console.error(`Forecast ${m}, horizon ${h}`) };
     }
     return base;
   }
@@ -406,7 +406,7 @@ class WasmModuleLoader {
 
   async #loadInlineWasm() {
     // Placeholder for inline WASM - could be base64 encoded or bundled
-    console.log('Using inline WASM placeholder');
+    console.error('Using inline WASM placeholder');
     throw new Error('Inline WASM not implemented yet');
   }
 
@@ -475,39 +475,39 @@ class WasmModuleLoader {
 
       // Neural network functions
       create_neural_network: (layers, neurons_per_layer) => {
-        console.log(`Creating neural network with ${layers} layers and ${neurons_per_layer} neurons per layer`);
+        console.error(`Creating neural network with ${layers} layers and ${neurons_per_layer} neurons per layer`);
         return 1;
       },
 
       train_network: (network_id, data, epochs) => {
-        console.log(`Training network ${network_id} for ${epochs} epochs`);
+        console.error(`Training network ${network_id} for ${epochs} epochs`);
         return true;
       },
 
       forward_pass: (network_id, input) => {
-        console.log(`Forward pass on network ${network_id}`);
+        console.error(`Forward pass on network ${network_id}`);
         return new Float32Array([0.5, 0.5, 0.5]);
       },
 
       // Forecasting functions
       create_forecasting_model: (type) => {
-        console.log(`Creating forecasting model of type ${type}`);
+        console.error(`Creating forecasting model of type ${type}`);
         return 1;
       },
 
       forecast: (model_id, data, horizon) => {
-        console.log(`Forecasting with model ${model_id} for horizon ${horizon}`);
+        console.error(`Forecasting with model ${model_id} for horizon ${horizon}`);
         return new Float32Array([0.1, 0.2, 0.3]);
       },
 
       // Swarm functions
       create_swarm: (topology, max_agents) => {
-        console.log(`Creating swarm with ${topology} topology and ${max_agents} max agents`);
+        console.error(`Creating swarm with ${topology} topology and ${max_agents} max agents`);
         return 1;
       },
 
       spawn_agent: (swarm_id, agent_type) => {
-        console.log(`Spawning ${agent_type} agent in swarm ${swarm_id}`);
+        console.error(`Spawning ${agent_type} agent in swarm ${swarm_id}`);
         return 1;
       },
 
@@ -558,7 +558,7 @@ class WasmModuleLoader {
   clearCache() {
     const cacheSize = this.wasmCache.size;
     this.wasmCache.clear();
-    console.log(`🧹 Cleared WASM cache (${cacheSize} modules)`);
+    console.error(`🧹 Cleared WASM cache (${cacheSize} modules`);
   }
 
   optimizeMemory() {
@@ -574,13 +574,13 @@ class WasmModuleLoader {
     }
 
     if (expired > 0) {
-      console.log(`🧹 Removed ${expired} expired WASM cache entries`);
+      console.error(`🧹 Removed ${expired} expired WASM cache entries`);
     }
 
     // Force garbage collection if available
     if (global.gc) {
       global.gc();
-      console.log('🧹 Triggered garbage collection');
+      console.error('🧹 Triggered garbage collection');
     }
 
     return {

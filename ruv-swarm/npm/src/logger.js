@@ -40,20 +40,14 @@ export class Logger {
             ...data
         };
 
+        // CRITICAL FIX: Always use stderr to avoid JSON-RPC stdout corruption
+        // This is essential for MCP server compatibility
         if (this.formatJson) {
             const output = JSON.stringify(logEntry);
-            if (this.enableStderr) {
-                console.error(output);
-            } else {
-                console.log(output);
-            }
+            console.error(output);
         } else {
             const output = `${prefix}[${level}] ${message}`;
-            if (this.enableStderr) {
-                console.error(output, Object.keys(data).length > 0 ? data : '');
-            } else {
-                console.log(output, Object.keys(data).length > 0 ? data : '');
-            }
+            console.error(output, Object.keys(data).length > 0 ? data : '');
         }
     }
 

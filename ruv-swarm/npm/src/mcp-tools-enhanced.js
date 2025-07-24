@@ -316,7 +316,7 @@ class EnhancedMCPTools {
         });
       }
 
-      console.log(`🔗 Integrated ${runtimeNotifications.length} hook notifications into MCP memory`);
+      console.error(`🔗 Integrated ${runtimeNotifications.length} hook notifications into MCP memory`);
       return true;
     } catch (error) {
       console.error('❌ Failed to integrate hook notifications:', error.message);
@@ -334,17 +334,17 @@ class EnhancedMCPTools {
 
     try {
       const allAgents = agentId ? [agentId] : await this.getActiveAgentIds();
-      console.log('🔍 Debug: Target agents for notification retrieval:', allAgents);
+      console.error('🔍 Debug: Target agents for notification retrieval:', allAgents);
       const notifications = [];
 
       for (const agent of allAgents) {
         const memories = await this.persistence.getAllMemory(agent);
-        console.log(`🔍 Debug: Agent ${agent} has ${memories.length} memories`);
+        console.error(`🔍 Debug: Agent ${agent} has ${memories.length} memories`);
 
         const agentNotifications = memories
           .filter(memory => {
             const isNotification = memory.key.startsWith('notifications/');
-            console.log(`🔍 Debug: Key ${memory.key} is notification: ${isNotification}`);
+            console.error(`🔍 Debug: Key ${memory.key} is notification: ${isNotification}`);
             return isNotification;
           })
           .filter(memory => !type || memory.value.type === type)
@@ -355,7 +355,7 @@ class EnhancedMCPTools {
             memoryKey: memory.key,
           }));
 
-        console.log(`🔍 Debug: Agent ${agent} has ${agentNotifications.length} notification memories`);
+        console.error(`🔍 Debug: Agent ${agent} has ${agentNotifications.length} notification memories`);
         notifications.push(...agentNotifications);
       }
 
@@ -372,18 +372,18 @@ class EnhancedMCPTools {
   async getActiveAgentIds() {
     try {
       const swarms = await this.persistence.getActiveSwarms();
-      console.log(`🔍 Debug: Found ${swarms.length} active swarms`);
+      console.error(`🔍 Debug: Found ${swarms.length} active swarms`);
       const agentIds = [];
 
       for (const swarm of swarms) {
         // Get ALL agents (not just active) for cross-agent notifications
         const agents = await this.persistence.getSwarmAgents(swarm.id, 'all');
-        console.log(`🔍 Debug: Swarm ${swarm.id} has ${agents.length} total agents`);
+        console.error(`🔍 Debug: Swarm ${swarm.id} has ${agents.length} total agents`);
         agentIds.push(...agents.map(a => a.id));
       }
 
       const uniqueAgentIds = [...new Set(agentIds)]; // Remove duplicates
-      console.log('🔍 Debug: Total unique active agent IDs:', uniqueAgentIds);
+      console.error('🔍 Debug: Total unique active agent IDs:', uniqueAgentIds);
       return uniqueAgentIds;
     } catch (error) {
       console.error('❌ Failed to get active agent IDs:', error.message);
@@ -429,7 +429,7 @@ class EnhancedMCPTools {
 
       const existingSwarms = await this.persistence.getActiveSwarms();
       const swarmsArray = Array.isArray(existingSwarms) ? existingSwarms : [];
-      console.log(`📦 Loading ${swarmsArray.length} existing swarms from database...`);
+      console.error(`📦 Loading ${swarmsArray.length} existing swarms from database...`);
 
       for (const swarmData of swarmsArray) {
         try {
@@ -445,7 +445,7 @@ class EnhancedMCPTools {
 
           // Load agents for this swarm
           const agents = this.persistence.getSwarmAgents(swarmData.id);
-          console.log(`  └─ Loading ${agents.length} agents for swarm ${swarmData.id}`);
+          console.error(`  └─ Loading ${agents.length} agents for swarm ${swarmData.id}`);
 
           for (const agentData of agents) {
             try {
@@ -464,7 +464,7 @@ class EnhancedMCPTools {
           console.warn(`⚠️ Failed to load swarm ${swarmData.id}:`, swarmError.message);
         }
       }
-      console.log(`✅ Loaded ${this.activeSwarms.size} swarms into memory`);
+      console.error(`✅ Loaded ${this.activeSwarms.size} swarms into memory`);
     } catch (error) {
       console.warn('Failed to load existing swarms:', error.message);
     }
@@ -1344,10 +1344,10 @@ class EnhancedMCPTools {
 
       if (type === 'all' || type === 'swarm') {
         if (includeSwarmBenchmarks) {
-          console.log('Running swarm benchmarks with iterations:', iterations);
+          console.error('Running swarm benchmarks with iterations:', iterations);
           try {
             benchmarks.swarm = await this.runSwarmBenchmarks(iterations);
-            console.log('Swarm benchmarks result:', benchmarks.swarm);
+            console.error('Swarm benchmarks result:', benchmarks.swarm);
           } catch (error) {
             console.error('Swarm benchmark error:', error);
             benchmarks.swarm = {
@@ -2075,7 +2075,7 @@ class EnhancedMCPTools {
         console.warn('Swarm benchmark: No data collected for timing');
         return { avg_ms: 0, min_ms: 0, max_ms: 0 };
       }
-      console.log('Swarm benchmark data points:', data.length, 'values:', data);
+      console.error('Swarm benchmark data points:', data.length, 'values:', data);
 
       const avg = data.reduce((a, b) => a + b, 0) / data.length;
       const min = Math.min(...data);

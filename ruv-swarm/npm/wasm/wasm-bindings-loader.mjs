@@ -95,7 +95,7 @@ class WasmBindingsLoader {
       globalWasm = this.wasm;
       
       this.initialized = true;
-      console.log('✅ WASM bindings loaded successfully (actual WASM)');
+      console.error('✅ WASM bindings loaded successfully (actual WASM)');
       return this;
     } catch (error) {
       console.error('❌ Failed to initialize WASM bindings:', error);
