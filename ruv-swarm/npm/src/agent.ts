@@ -299,7 +299,7 @@ export class AgentPool {
   getAvailableAgent(preferredType?: string): Agent | undefined {
     let selectedAgent: Agent | undefined;
 
-    for (const agentId of this.availableAgents) {
+    for (const agentId of Array.from(this.availableAgents)) {
       const agent = this.agents.get(agentId);
       if (!agent) continue;
 

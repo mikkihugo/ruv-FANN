@@ -83,6 +83,13 @@ pub enum SwarmError {
         reason: String,
     },
 
+    /// System-level error
+    #[cfg_attr(feature = "std", error("System error: {message}"))]
+    SystemError {
+        /// Description of the system error
+        message: String,
+    },
+
     /// Generic error with custom message
     #[cfg_attr(feature = "std", error("{0}"))]
     Custom(String),
@@ -115,6 +122,9 @@ impl fmt::Display for SwarmError {
             SwarmError::StrategyError { reason } => write!(f, "Strategy error: {}", reason),
             SwarmError::SerializationError { reason } => {
                 write!(f, "Serialization error: {}", reason)
+            }
+            SwarmError::SystemError { message } => {
+                write!(f, "System error: {}", message)
             }
             SwarmError::Custom(msg) => write!(f, "{}", msg),
         }

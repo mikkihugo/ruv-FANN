@@ -1,6 +1,6 @@
 [package]
 name = "ruv-swarm-core"
-version = "1.0.6"
+version = "1.0.7"
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
@@ -44,6 +44,10 @@ tracing = { workspace = true, optional = true }
 # Random number generation
 rand = { workspace = true }
 getrandom = { workspace = true, optional = true }
+
+# Performance monitoring dependencies
+chrono = { version = "0.4", features = ["serde"] }
+num_cpus = "1.16"
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util", "rt", "macros"] }

@@ -1,8 +1,10 @@
-# ruv-swarm 🐝
+# Enhanced Queen Coordinator for ruv-swarm
 
-[![Crates.io](https://img.shields.io/crates/v/ruv-swarm-core.svg)](https://crates.io/crates/ruv-swarm-core)
-[![Documentation](https://docs.rs/ruv-swarm-core/badge.svg)](https://docs.rs/ruv-swarm)
-[![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/ruv-swarm-core.svg)](#license)
+[![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE-MIT)
+[![Rust](https://img.shields.io/badge/rust-1.85+-orange.svg)](https://www.rust-lang.org)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](CI_PLACEHOLDER)
+
+**Real, working implementation of advanced swarm coordination with GitHub integration, performance tracking, and strategic planning.**
 [![CI](https://github.com/ruvnet/ruv-FANN/workflows/CI/badge.svg)](https://github.com/ruvnet/ruv-FANN/actions)
 
 **What if every task, every file, every function could truly think?** Just for a moment. No LLM required. That's what ruv-swarm makes real.
