@@ -174,7 +174,7 @@ class MCPToolsTestSuite {
     });
 
     await this.runTest('neural_train - Train neural agents', async() => {
-      const result = await this.tools.neural_train({ iterations: 1 });
+      const result = await this.tools.neural_train({ agentId: 'test-agent-001', iterations: 1 });
       assert(result.success === true, 'neural_train should start training');
       this.results.coverage.validInputs++;
     });
@@ -322,7 +322,7 @@ class MCPToolsTestSuite {
 
     await this.runTest('neural_train - Zero iterations', async() => {
       try {
-        await this.tools.neural_train({ iterations: 0 });
+        await this.tools.neural_train({ agentId: 'test-agent-001', iterations: 0 });
         this.results.coverage.edgeCases++;
       } catch (error) {
         this.results.coverage.edgeCases++;
