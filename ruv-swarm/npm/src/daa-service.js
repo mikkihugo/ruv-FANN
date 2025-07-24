@@ -355,9 +355,9 @@ export class DAAService extends EventEmitter {
           this.resourceManagerModule = new this.wasmModule.WasmResourceManager(1024); // 1GB limit
         }
 
-        console.log('✅ DAA Service initialized with WASM support');
+        console.error('✅ DAA Service initialized with WASM support');
       } catch (wasmError) {
-        console.warn(`⚠️ WASM initialization failed, using fallback: ${wasmError.message}`);
+        console.error(`⚠️ WASM initialization failed, using fallback: ${wasmError.message}`);
         // Continue with basic functionality
         this.wasmModule = null;
         this.coordinatorModule = null;

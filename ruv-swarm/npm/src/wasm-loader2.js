@@ -125,7 +125,7 @@ class WasmModuleLoader {
       this.modules.set(moduleName, module);
       this.loadingPromises.delete(moduleName);
 
-      console.log(`✅ Loaded WASM module: ${moduleName} (${this.formatBytes(moduleInfo.size)})`);
+      console.error(`✅ Loaded WASM module: ${moduleName} (${this.formatBytes(moduleInfo.size)})`);
       return module;
     } catch (error) {
       this.loadingPromises.delete(moduleName);
@@ -324,7 +324,7 @@ class WasmModuleLoader {
     // Load only the core module - other functionality is included in it
     await this.loadModule('core');
 
-    console.log('🚀 Core WASM module loaded successfully');
+    console.error('🚀 Core WASM module loaded successfully');
     return true;
   }
 
@@ -335,7 +335,7 @@ class WasmModuleLoader {
 
     await Promise.all(existingModules.map(name => this.loadModule(name)));
 
-    console.log(`🎯 All available WASM modules loaded successfully (${existingModules.length} modules)`);
+    console.error(`🎯 All available WASM modules loaded successfully (${existingModules.length} modules`);
     return true;
   }
 

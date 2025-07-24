@@ -37,7 +37,7 @@ class RuvSwarm {
    * Cleanup method for proper resource disposal
    */
   destroy() {
-    console.log('🧹 Cleaning up RuvSwarm instance...');
+    console.error('🧹 Cleaning up RuvSwarm instance...');
 
     // Terminate all active swarms
     for (const swarm of this.activeSwarms.values()) {
@@ -89,12 +89,12 @@ class RuvSwarm {
     // Check if already initialized through container
     if (instance.isInitialized) {
       if (debug) {
-        console.log('[DEBUG] RuvSwarm already initialized through container');
+        console.error('[DEBUG] RuvSwarm already initialized through container');
       }
       return instance;
     }
 
-    console.log('🧠 Initializing ruv-swarm with WASM capabilities...');
+    console.error('🧠 Initializing ruv-swarm with WASM capabilities...');
 
     try {
       // Initialize WASM modules
@@ -118,10 +118,10 @@ class RuvSwarm {
           
           instance.persistence = new SwarmPersistencePooled(undefined, poolOptions);
           await instance.persistence.initialize();
-          console.log('💾 High-availability pooled persistence layer initialized');
-          console.log(`📊 Pool configuration: ${poolOptions.maxReaders} readers, ${poolOptions.maxWorkers} workers`);
+          console.error('💾 High-availability pooled persistence layer initialized');
+          console.error(`📊 Pool configuration: ${poolOptions.maxReaders} readers, ${poolOptions.maxWorkers} workers`);
         } catch (error) {
-          console.warn('⚠️ Pooled persistence not available:', error.message);
+          console.error('⚠️ Pooled persistence not available:', error.message);
           instance.persistence = null;
         }
       }
@@ -131,9 +131,9 @@ class RuvSwarm {
         try {
           await instance.wasmLoader.loadModule('neural');
           instance.features.neural_networks = true;
-          console.log('🧠 Neural network capabilities loaded');
+          console.error('🧠 Neural network capabilities loaded');
         } catch (error) {
-          console.warn('⚠️ Neural network module not available:', error.message);
+          console.error('⚠️ Neural network module not available:', error.message);
           instance.features.neural_networks = false;
         }
       }
@@ -143,15 +143,15 @@ class RuvSwarm {
         try {
           await instance.wasmLoader.loadModule('forecasting');
           instance.features.forecasting = true;
-          console.log('📈 Forecasting capabilities loaded');
+          console.error('📈 Forecasting capabilities loaded');
         } catch (error) {
-          console.warn('⚠️ Forecasting module not available:', error.message);
+          console.error('⚠️ Forecasting module not available:', error.message);
           instance.features.forecasting = false;
         }
       }
 
-      console.log('✅ ruv-swarm initialized successfully');
-      console.log('📊 Features:', instance.features);
+      console.error('✅ ruv-swarm initialized successfully');
+      console.error('📊 Features:', instance.features);
 
       // Mark as initialized
       instance.isInitialized = true;
@@ -182,9 +182,9 @@ class RuvSwarm {
         this.features.cognitive_diversity = true; // Default enabled
       }
 
-      console.log('🔍 Feature detection complete');
+      console.error('🔍 Feature detection complete');
     } catch (error) {
-      console.warn('⚠️ Feature detection failed:', error.message);
+      console.error('⚠️ Feature detection failed:', error.message);
     }
   }
 
@@ -220,7 +220,7 @@ class RuvSwarm {
         wasmSwarm.name = name;
         wasmSwarm.config = swarmConfig;
       } catch (error) {
-        console.warn('Failed to create WASM swarm:', error.message);
+        console.error('Failed to create WASM swarm:', error.message);
         // Fallback to JavaScript implementation
         wasmSwarm = {
           id: id || `swarm-${Date.now()}`,
@@ -257,7 +257,7 @@ class RuvSwarm {
         });
       } catch (error) {
         if (!error.message.includes('UNIQUE constraint failed')) {
-          console.warn('Failed to persist swarm:', error.message);
+          console.error('Failed to persist swarm:', error.message);
         }
       }
     }
@@ -265,7 +265,7 @@ class RuvSwarm {
     this.activeSwarms.set(swarm.id, swarm);
     this.metrics.totalSwarms++;
 
-    console.log(`🐝 Created swarm: ${name} (${swarm.id})`);
+    console.error(`🐝 Created swarm: ${name} (${swarm.id})`);
     return swarm;
   }
 
@@ -430,12 +430,12 @@ class Swarm {
         });
       } catch (error) {
         if (!error.message.includes('UNIQUE constraint failed')) {
-          console.warn('Failed to persist agent:', error.message);
+          console.error('Failed to persist agent:', error.message);
         }
       }
     }
 
-    console.log(`🤖 Spawned agent: ${result.name} (${type})`);
+    console.error(`🤖 Spawned agent: ${result.name} (${type})`);
     return agent;
   }
 
@@ -506,7 +506,7 @@ class Swarm {
       });
     }
 
-    console.log(`📋 Orchestrated task: ${description} (${taskId}) - Assigned to ${result.assigned_agents.length} agents`);
+    console.error(`📋 Orchestrated task: ${description} (${taskId}) - Assigned to ${result.assigned_agents.length} agents`);
     return task;
   }
 
@@ -567,7 +567,7 @@ class Swarm {
     }
 
     // Fallback monitoring
-    console.log(`📊 Monitoring swarm ${this.id} for ${duration}ms...`);
+    console.error(`📊 Monitoring swarm ${this.id} for ${duration}ms...`);
     return {
       duration,
       interval,
@@ -576,7 +576,7 @@ class Swarm {
   }
 
   async terminate() {
-    console.log(`🛑 Terminating swarm: ${this.id}`);
+    console.error(`🛑 Terminating swarm: ${this.id}`);
     this.ruvSwarm.activeSwarms.delete(this.id);
   }
 }
@@ -595,7 +595,7 @@ class Agent {
   }
 
   async execute(_task) {
-    console.log(`🏃 Agent ${this.name} executing task`);
+    console.error(`🏃 Agent ${this.name} executing task`);
     this.status = 'busy';
 
     // Simulate task execution
@@ -620,7 +620,7 @@ class Agent {
 
   async updateStatus(status) {
     this.status = status;
-    console.log(`📊 Agent ${this.name} status: ${status}`);
+    console.error(`📊 Agent ${this.name} status: ${status}`);
   }
 }
 
@@ -648,7 +648,7 @@ class Task {
     this.startTime = Date.now();
     this.progress = 0.1;
 
-    console.log(`🏃 Executing task: ${this.description} with ${this.assignedAgents.length} agents`);
+    console.error(`🏃 Executing task: ${this.description} with ${this.assignedAgents.length} agents`);
 
     try {
       // Execute task with all assigned agents
@@ -692,7 +692,7 @@ class Task {
         }
       }
 
-      console.log(`✅ Task completed: ${this.description} (${this.endTime - this.startTime}ms)`);
+      console.error(`✅ Task completed: ${this.description} (${this.endTime - this.startTime}ms`);
 
     } catch (error) {
       this.status = 'failed';
