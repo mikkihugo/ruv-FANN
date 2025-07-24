@@ -36,6 +36,9 @@ export * from './types';
 export * from './utils';
 export * from './agent';
 export * from './neural-network';
+export * from './session-manager';
+export * from './session-utils';
+export * from './session-integration';
 
 /**
  * Main RuvSwarm class for orchestrating swarm operations

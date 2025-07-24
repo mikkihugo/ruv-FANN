@@ -152,7 +152,22 @@ export type SwarmEvent =
   | 'task:completed'
   | 'task:failed'
   | 'swarm:topology_changed'
-  | 'swarm:error';
+  | 'swarm:error'
+  | 'swarm:state_restored'
+  | 'swarm:initialized'
+  | 'swarm:destroyed'
+  | 'session:created'
+  | 'session:loaded'
+  | 'session:saved'
+  | 'session:paused'
+  | 'session:resumed'
+  | 'session:hibernated'
+  | 'session:terminated'
+  | 'session:restored'
+  | 'session:checkpoint_created'
+  | 'session:corruption_detected'
+  | 'session:error'
+  | 'session:integration_enabled';
 
 export interface WasmModule {
   init(): Promise<void>;
