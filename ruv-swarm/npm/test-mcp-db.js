@@ -1,17 +1,22 @@
 #!/usr/bin/env node
 
-const { Client } = require('@modelcontextprotocol/sdk/client/index.js');
-const { StdioClientTransport } = require('@modelcontextprotocol/sdk/client/stdio.js');
-const { spawn } = require('child_process');
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { spawn } from 'child_process';
+import sqlite3 from 'sqlite3';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 async function testMCPDatabaseUpdates() {
     console.log('🧪 Testing MCP Database Updates\n');
     
     // Get initial DB state
     const dbPath = path.join(__dirname, 'data', 'ruv-swarm.db');
-    const db = new sqlite3.Database(dbPath);
+    const db = new (sqlite3.verbose()).Database(dbPath);
     
     const getCount = (table) => new Promise((resolve, reject) => {
         db.get(`SELECT COUNT(*) as count FROM ${table}`, (err, row) => {
@@ -129,7 +134,7 @@ async function directDatabaseTest() {
     console.log('\n\n🔧 Direct Database Operation Test\n');
     
     const dbPath = path.join(__dirname, 'data', 'ruv-swarm.db');
-    const { DatabaseManager } = require('./src/database');
+    const { DatabaseManager } = await import('./src/database.js');
     const dbManager = new DatabaseManager(dbPath);
     
     // Create a swarm directly

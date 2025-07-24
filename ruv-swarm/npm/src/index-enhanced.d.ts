@@ -26,6 +26,7 @@ declare module 'ruv-swarm' {
     getSwarmStatus(swarmId: string, detailed?: boolean): Promise<SwarmStatus>;
     getAllSwarms(): Promise<SwarmInfo[]>;
     getGlobalMetrics(): Promise<GlobalMetrics>;
+    spawnAgent(name: string, type?: AgentType, options?: any): Promise<Agent>;
   }
 
   // Configuration options
@@ -56,15 +57,19 @@ declare module 'ruv-swarm' {
     tasks: Map<string, Task>;
     
     spawn(config: AgentConfig): Promise<Agent>;
+    spawnAgent(name: string, type?: AgentType, options?: any): Promise<Agent>;
     orchestrate(taskConfig: TaskConfig): Promise<Task>;
     getStatus(detailed?: boolean): Promise<SwarmStatus>;
     monitor(duration?: number, interval?: number): Promise<MonitorResult>;
     terminate(): Promise<void>;
   }
 
+  // Agent types
+  export type AgentType = 'researcher' | 'coder' | 'analyst' | 'optimizer' | 'coordinator';
+
   // Agent configuration
   export interface AgentConfig {
-    type?: 'researcher' | 'coder' | 'analyst' | 'optimizer' | 'coordinator';
+    type?: AgentType;
     name?: string;
     capabilities?: string[];
     enableNeuralNetwork?: boolean;

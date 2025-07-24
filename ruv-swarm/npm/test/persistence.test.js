@@ -4,7 +4,7 @@
  */
 
 import assert from 'assert';
-const sqlite3 = require('sqlite3').verbose();
+import sqlite3 from 'sqlite3';
 import path from 'path';
 import { promises as fs } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
@@ -26,7 +26,7 @@ class SwarmPersistence {
 
   async connect() {
     return new Promise((resolve, reject) => {
-      this.db = new sqlite3.Database(this.dbPath, (err) => {
+      this.db = new (sqlite3.verbose()).Database(this.dbPath, (err) => {
         if (err) {
           reject(err);
         } else {

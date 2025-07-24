@@ -94,14 +94,29 @@ class RuvSwarm {
       return instance;
     }
 
+    // Minimal loading for fast startup
+    if (loadingStrategy === 'minimal') {
+      if (debug) {
+        console.log('[DEBUG] Using minimal loading strategy for fast startup');
+      }
+      console.log('⚡ Fast-initializing ruv-swarm (minimal mode)...');
+      instance.isInitialized = true;
+      instance.features.simd_support = false; // Skip SIMD detection for speed
+      return instance;
+    }
+
     console.log('🧠 Initializing ruv-swarm with WASM capabilities...');
 
     try {
-      // Initialize WASM modules
-      await instance.wasmLoader.initialize(loadingStrategy);
+      // Initialize WASM modules (skip for minimal loading)
+      if (loadingStrategy !== 'minimal') {
+        await instance.wasmLoader.initialize(loadingStrategy);
+      }
 
-      // Detect and enable features
-      await instance.detectFeatures(useSIMD);
+      // Detect and enable features (skip for minimal loading)
+      if (loadingStrategy !== 'minimal') {
+        await instance.detectFeatures(useSIMD);
+      }
 
       // Initialize pooled persistence if enabled
       if (enablePersistence) {
@@ -118,40 +133,58 @@ class RuvSwarm {
           
           instance.persistence = new SwarmPersistencePooled(undefined, poolOptions);
           await instance.persistence.initialize();
-          console.log('💾 High-availability pooled persistence layer initialized');
-          console.log(`📊 Pool configuration: ${poolOptions.maxReaders} readers, ${poolOptions.maxWorkers} workers`);
+          console.log('[INFO] Pooled persistence layer initialized successfully');
+          if (debug) {
+            console.log(`[DEBUG] Pool configuration: ${poolOptions.maxReaders} readers, ${poolOptions.maxWorkers} workers`);
+          }
         } catch (error) {
           console.warn('⚠️ Pooled persistence not available:', error.message);
           instance.persistence = null;
         }
+      } else {
+        if (debug) {
+          console.log('[DEBUG] Persistence disabled for fast startup');
+        }
       }
 
       // Pre-load neural networks if enabled
-      if (enableNeuralNetworks) {
+      if (enableNeuralNetworks && loadingStrategy !== 'minimal') {
         try {
           await instance.wasmLoader.loadModule('neural');
           instance.features.neural_networks = true;
-          console.log('🧠 Neural network capabilities loaded');
+          if (debug) {
+            console.log('[DEBUG] Neural network capabilities loaded');
+          }
         } catch (error) {
-          console.warn('⚠️ Neural network module not available:', error.message);
+          if (debug) {
+            console.warn('⚠️ Neural network module not available:', error.message);
+          }
           instance.features.neural_networks = false;
         }
       }
 
       // Pre-load forecasting if enabled
-      if (enableForecasting && enableNeuralNetworks) {
+      if (enableForecasting && enableNeuralNetworks && loadingStrategy !== 'minimal') {
         try {
           await instance.wasmLoader.loadModule('forecasting');
           instance.features.forecasting = true;
-          console.log('📈 Forecasting capabilities loaded');
+          if (debug) {
+            console.log('[DEBUG] Forecasting capabilities loaded');
+          }
         } catch (error) {
-          console.warn('⚠️ Forecasting module not available:', error.message);
+          if (debug) {
+            console.warn('⚠️ Forecasting module not available:', error.message);
+          }
           instance.features.forecasting = false;
         }
       }
 
-      console.log('✅ ruv-swarm initialized successfully');
-      console.log('📊 Features:', instance.features);
+      if (loadingStrategy !== 'minimal') {
+        console.log('✅ ruv-swarm initialized successfully');
+        if (debug) {
+          console.log('📊 Features:', instance.features);
+        }
+      }
 
       // Mark as initialized
       instance.isInitialized = true;
@@ -314,6 +347,29 @@ class RuvSwarm {
     };
   }
 
+  /**
+   * Legacy compatibility method for spawnAgent
+   * Creates a default swarm if none exists and spawns an agent
+   * @param {string} name - Agent name
+   * @param {string} type - Agent type
+   * @param {Object} options - Additional options
+   * @returns {Promise<Agent>} The spawned agent
+   */
+  async spawnAgent(name, type = 'researcher', options = {}) {
+    // Create a default swarm if none exists
+    if (this.activeSwarms.size === 0) {
+      await this.createSwarm({
+        name: 'default-swarm',
+        maxAgents: options.maxAgents || 10,
+      });
+    }
+
+    // Get the first available swarm (or the default one we just created)
+    const swarm = this.activeSwarms.values().next().value;
+    
+    return await swarm.spawnAgent(name, type, options);
+  }
+
   // Feature detection helpers
   static detectSIMDSupport() {
     try {
@@ -437,6 +493,21 @@ class Swarm {
 
     console.log(`🤖 Spawned agent: ${result.name} (${type})`);
     return agent;
+  }
+
+  /**
+   * Legacy compatibility method for spawnAgent
+   * @param {string} name - Agent name
+   * @param {string} type - Agent type
+   * @param {Object} options - Additional options
+   * @returns {Promise<Agent>} The spawned agent
+   */
+  async spawnAgent(name, type = 'researcher', options = {}) {
+    return await this.spawn({
+      name,
+      type,
+      ...options
+    });
   }
 
   async orchestrate(taskConfig) {

@@ -150,8 +150,8 @@ class ClaudeIntegrationOrchestrator {
   async cleanup() {
     console.log('🧹 Cleaning up Claude Code integration files...');
 
-    const fs = require('fs').promises;
-    const path = require('path');
+    const { promises: fs } = await import('fs');
+    const path = await import('path');
 
     try {
       const filesToRemove = [
