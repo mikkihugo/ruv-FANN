@@ -137,6 +137,11 @@ export class NeuralNetwork {
   setTrainingData(data: TrainingDataConfig): void {
     this.network.set_training_data(data);
   }
+  
+  // Getter method to access the internal network for training
+  getInternalNetwork(): any {
+    return this.network;
+  }
 }
 
 export class NeuralTrainer {
@@ -147,7 +152,7 @@ export class NeuralTrainer {
   }
   
   async trainEpoch(network: NeuralNetwork, data: TrainingDataConfig): Promise<number> {
-    return this.trainer.train_epoch(network.network, data);
+    return this.trainer.train_epoch(network.getInternalNetwork(), data);
   }
   
   async trainUntilTarget(
@@ -156,7 +161,7 @@ export class NeuralTrainer {
     targetError: number,
     maxEpochs: number,
   ): Promise<TrainingResult> {
-    return this.trainer.train_until_target(network.network, data, targetError, maxEpochs);
+    return this.trainer.train_until_target(network.getInternalNetwork(), data, targetError, maxEpochs);
   }
   
   getTrainingHistory(): any[] {
@@ -218,7 +223,7 @@ export class CascadeTrainer {
   private trainer: any;
   
   constructor(private wasm: any, config: CascadeConfig | null, network: NeuralNetwork, data: TrainingDataConfig) {
-    this.trainer = new wasm.WasmCascadeTrainer(config || this.getDefaultConfig(), network.network, data);
+    this.trainer = new wasm.WasmCascadeTrainer(config || this.getDefaultConfig(), network.getInternalNetwork(), data);
   }
   
   async train(): Promise<any> {

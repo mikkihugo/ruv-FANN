@@ -1,0 +1,55 @@
+[package]
+name = "ruv-swarm-github"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+description = "GitHub API integration for RUV Swarm coordinator progress reporting"
+readme = "README.md"
+keywords = ["github", "api", "swarm", "reporting", "integration"]
+categories = ["api-bindings", "development-tools", "web-programming"]
+
+[features]
+default = ["std"]
+std = ["tokio/rt-multi-thread", "reqwest/default-tls"]
+
+[dependencies]
+# Workspace dependencies
+tokio = { workspace = true, features = ["sync", "time", "rt", "macros"] }
+async-trait = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+
+# Time handling
+chrono = { version = "0.4", features = ["serde"] }
+
+# Core swarm dependencies
+ruv-swarm-core = { path = "../ruv-swarm-core", version = "1.0.7" }
+
+# GitHub API dependencies
+octocrab = "0.39"
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+url = "2.5"
+
+# Rate limiting and retry
+governor = "0.6"
+backoff = "0.4"
+
+# Configuration and environment
+figment = { version = "0.10", features = ["env", "json", "toml"] }
+
+
+[dev-dependencies]
+tokio-test = "0.4"
+mockito = "1.4"
+tempfile = "3.8"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

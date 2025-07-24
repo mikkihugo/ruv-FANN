@@ -152,7 +152,9 @@ export type SwarmEvent =
   | 'task:completed'
   | 'task:failed'
   | 'swarm:topology_changed'
-  | 'swarm:error';
+  | 'swarm:error'
+  | 'swarm:initialized'
+  | 'swarm:destroyed';
 
 export interface WasmModule {
   init(): Promise<void>;

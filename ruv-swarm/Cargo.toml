@@ -12,6 +12,8 @@ members = [
     "crates/ruv-swarm-daa",          # DAA integration for autonomous agents
     "crates/swe-bench-adapter",      # SWE-Bench adapter for evaluation
     "crates/ruv-swarm-cli",
+    "crates/ruv-swarm-enhanced-coordinator", # Enhanced Queen Coordinator
+    "crates/ruv-swarm-github",               # GitHub integration
     "ml-training",
     "benchmarking",                   # Comprehensive benchmarking framework
 ]

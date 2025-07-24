@@ -277,7 +277,7 @@ export class RuvSwarm implements SwarmEventEmitter {
     }
 
     // Cancel any pending tasks
-    for (const task of this.state.tasks.values()) {
+    for (const task of Array.from(this.state.tasks.values())) {
       if (task.status === 'pending' || task.status === 'in_progress') {
         task.status = 'failed';
         task.error = new Error('Swarm shutdown');
@@ -441,7 +441,7 @@ export class RuvSwarm implements SwarmEventEmitter {
       }
 
       // Update agent utilization metrics
-      for (const agent of this.state.agents.values()) {
+      for (const agent of Array.from(this.state.agents.values())) {
         this.state.metrics.agentUtilization.set(
           agent.id,
           agent.state.status === 'busy' ? 1 : 0,
