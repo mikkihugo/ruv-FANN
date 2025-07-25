@@ -1,7 +1,7 @@
 {
-  "name": "ruv-swarm",
-  "version": "1.0.18",
-  "description": "High-performance neural network swarm orchestration in WebAssembly",
+  "name": "@claude-zen/ruv-swarm",
+  "version": "2.0.0-alpha.70",
+  "description": "Direct ruv-swarm source integration for Claude Zen monorepo - High-performance neural network swarm orchestration",
   "main": "src/index.js",
   "module": "src/index.js",
   "types": "src/index.d.ts",
